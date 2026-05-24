@@ -679,3 +679,71 @@ export function tallyCompetencies(exercises: ReadonlyArray<Exercise>): Competenc
   }
   return tally;
 }
+
+// ----------------------------------------------------------------------------
+// OM Cross-Reference Mapping fixtures (per-operator, Third-Schedule -> OM)
+//
+// Maps an LN 42/2026 Third Schedule clause (or §2.2 training topic) to the
+// operator's own Operations Manual section + evidence reference. This is the
+// matrix the operator submits to KCAA per Reg 17(3) — the attestation that
+// the OM addresses every binding clause.
+//
+// For the demo, JAK gets two mappings (the two clauses we have verified
+// subjects for); I-Fly gets one. All other clauses render "Not yet mapped
+// (Phase 1 deliverable)" on the page.
+// ----------------------------------------------------------------------------
+
+export interface OmCrossReferenceMapping {
+  readonly operatorId: OperatorId;
+  /** Third Schedule clause short reference, e.g. '§2.1.25' or '§2.2.4'. */
+  readonly clauseShortRef: string;
+  /** Operator's OM section reference, e.g. 'OM-A §8.4.3'. */
+  readonly operatorOmSection: string;
+  /** Evidence pointer, e.g. 'AOM rev 12, p. 247' or a URL. */
+  readonly evidenceReference?: string;
+  readonly mappedByUserName?: string;
+  readonly mappedAt?: IsoDateTime;
+  readonly notes?: string;
+}
+
+export const DEMO_OM_MAPPINGS: ReadonlyArray<OmCrossReferenceMapping> = [
+  {
+    operatorId: OP_JAK,
+    clauseShortRef: '§2.1.25',
+    operatorOmSection: 'OM-A §8.4.3',
+    evidenceReference: 'JAK OM-A rev 12, p. 247 (Stabilised Approach Policy)',
+    mappedByUserName: 'Capt. Demo HoT (JAK)',
+    mappedAt: ISO_DATETIME(new Date('2026-04-15T10:00:00Z')),
+    notes:
+      'JAK gates: stabilised by 1,000 ft AAL IMC / 500 ft AAL VMC. Go-around mandatory below ' +
+      'gate if non-stabilised.',
+  },
+  {
+    operatorId: OP_JAK,
+    clauseShortRef: '§2.2.4',
+    operatorOmSection: 'OM-D §3.1 — CRM Recurrent Programme',
+    evidenceReference: 'JAK CRM Programme rev 3 (annual cycle, 6 hrs)',
+    mappedByUserName: 'Capt. Demo HoT (JAK)',
+    mappedAt: ISO_DATETIME(new Date('2026-04-18T10:00:00Z')),
+  },
+  {
+    operatorId: OP_IFLY,
+    clauseShortRef: '§2.2.4',
+    operatorOmSection: 'OM-D §4 — CRM/TEM',
+    evidenceReference: 'I-Fly Training Manual rev 2',
+    mappedByUserName: 'Capt. Demo HoT (I-Fly)',
+    mappedAt: ISO_DATETIME(new Date('2026-04-20T10:00:00Z')),
+  },
+];
+
+export function buildOmMappingIndex(
+  mappings: ReadonlyArray<OmCrossReferenceMapping>,
+  operatorId: OperatorId,
+): ReadonlyMap<string, OmCrossReferenceMapping> {
+  const m = new Map<string, OmCrossReferenceMapping>();
+  for (const r of mappings) {
+    if (r.operatorId !== operatorId) continue;
+    m.set(r.clauseShortRef, r);
+  }
+  return m;
+}

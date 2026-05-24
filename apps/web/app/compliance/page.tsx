@@ -72,6 +72,25 @@ export default function CompliancePage() {
               ))}
             </ul>
           ) : null}
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-200 pt-3">
+            <span className="text-[10px] text-slate-500">Submission attestation:</span>
+            <a
+              href="/exports/om-cross-reference-matrix?operatorId=11111111-1111-1111-1111-111111111111"
+              target="_blank"
+              rel="noopener"
+              className="rounded border border-navy-300 bg-white px-2 py-1 text-[10px] font-medium text-navy-900 hover:bg-navy-50"
+            >
+              OM Matrix — JAK Demo
+            </a>
+            <a
+              href="/exports/om-cross-reference-matrix?operatorId=22222222-2222-2222-2222-222222222222"
+              target="_blank"
+              rel="noopener"
+              className="rounded border border-navy-300 bg-white px-2 py-1 text-[10px] font-medium text-navy-900 hover:bg-navy-50"
+            >
+              OM Matrix — I-Fly Demo
+            </a>
+          </div>
         </div>
 
         <div className="rounded-lg border border-slate-200 bg-white p-5">

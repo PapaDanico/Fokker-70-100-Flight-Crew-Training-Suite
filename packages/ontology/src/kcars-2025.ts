@@ -150,32 +150,66 @@ export const SIXTH_SCHEDULE_PENALTIES = {
 // ----------------------------------------------------------------------------
 
 export interface ThirdScheduleClause {
-  number: number;
-  shortRef: string;
-  subject: string;
-  notes?: string;
+  readonly number: number;
+  readonly shortRef: string;
+  /** Null when the subject hasn't been verified against the primary-source PDF. */
+  readonly subject: string | null;
+  readonly pendingPrimarySource: boolean;
+  readonly notes?: string;
 }
+
+function buildSectionClauses(
+  prefix: '§2.1' | '§2.2',
+  count: number,
+  known: ReadonlyArray<{ number: number; subject: string; notes?: string }>,
+): ReadonlyArray<ThirdScheduleClause> {
+  const byNumber = new Map(known.map((k) => [k.number, k]));
+  return Array.from({ length: count }, (_unused, i) => {
+    const number = i + 1;
+    const k = byNumber.get(number);
+    if (k) {
+      return {
+        number,
+        shortRef: `${prefix}.${number}`,
+        subject: k.subject,
+        pendingPrimarySource: false,
+        ...(k.notes !== undefined ? { notes: k.notes } : {}),
+      };
+    }
+    return {
+      number,
+      shortRef: `${prefix}.${number}`,
+      subject: null,
+      pendingPrimarySource: true,
+    };
+  });
+}
+
+export const THIRD_SCHEDULE_SECTION_21_CLAUSES: ReadonlyArray<ThirdScheduleClause> =
+  buildSectionClauses('§2.1', 34, [
+    {
+      number: 25,
+      subject: 'Stabilised approach criteria',
+      notes: 'Operators submit their own gate heights; the regulation does not prescribe values.',
+    },
+  ]);
+
+export const THIRD_SCHEDULE_SECTION_22_TOPICS: ReadonlyArray<ThirdScheduleClause> =
+  buildSectionClauses('§2.2', 12, [{ number: 4, subject: 'Crew Resource Management (CRM)' }]);
 
 export const THIRD_SCHEDULE = {
   instrument: LN_42_2026,
   section21: {
     title: 'OM content list',
     clauseCount: 34,
-    knownClauses: [
-      {
-        number: 25,
-        shortRef: '§2.1.25',
-        subject: 'Stabilised approach criteria',
-        notes: 'Operators submit their own gate heights; the regulation does not prescribe values.',
-      },
-    ] as ReadonlyArray<ThirdScheduleClause>,
+    clauses: THIRD_SCHEDULE_SECTION_21_CLAUSES,
+    knownClauses: THIRD_SCHEDULE_SECTION_21_CLAUSES.filter((c) => !c.pendingPrimarySource),
   },
   section22: {
     title: 'Mandatory training topics',
     topicCount: 12,
-    knownTopics: [
-      { number: 4, shortRef: '§2.2.4', subject: 'Crew Resource Management (CRM)' },
-    ] as ReadonlyArray<ThirdScheduleClause>,
+    clauses: THIRD_SCHEDULE_SECTION_22_TOPICS,
+    knownTopics: THIRD_SCHEDULE_SECTION_22_TOPICS.filter((c) => !c.pendingPrimarySource),
   },
 } as const;
 
