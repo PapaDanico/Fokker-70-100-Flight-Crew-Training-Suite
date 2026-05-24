@@ -24,21 +24,39 @@ export default function PilotsPage() {
 
   return (
     <div className="space-y-8">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-navy-900">
-          Pilots — Currency Tracker
-        </h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-700">
-          Per-pilot currency matrix across the {CURRENCY_CATALOG.length}-item catalog in{' '}
-          <code className="rounded bg-slate-100 px-1 py-0.5">@dnca/domain</code>. Status colour is
-          computed by <code className="rounded bg-slate-100 px-1 py-0.5">statusFor()</code> using
-          the same logic that protects the database write path. Currently rendering deterministic
-          demo data; backend wiring lands once the API framework decision is made.
-        </p>
-        <p className="mt-2 max-w-3xl text-xs text-slate-500">
-          As of <strong>{asOfIso}</strong>. {DEMO_PILOTS.length} pilots across{' '}
-          {DEMO_OPERATORS.length} operators.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-navy-900">
+            Pilots — Currency Tracker
+          </h1>
+          <p className="mt-2 max-w-3xl text-sm text-slate-700">
+            Per-pilot currency matrix across the {CURRENCY_CATALOG.length}-item catalog in{' '}
+            <code className="rounded bg-slate-100 px-1 py-0.5">@dnca/domain</code>. Status colour is
+            computed by <code className="rounded bg-slate-100 px-1 py-0.5">statusFor()</code> using
+            the same logic that protects the database write path. Currently rendering deterministic
+            demo data; backend wiring lands once the API framework decision is made.
+          </p>
+          <p className="mt-2 max-w-3xl text-xs text-slate-500">
+            As of <strong>{asOfIso}</strong>. {DEMO_PILOTS.length} pilots across{' '}
+            {DEMO_OPERATORS.length} operators.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col gap-2">
+          {DEMO_OPERATORS.map((op) => (
+            <a
+              key={op.id}
+              href={`/exports/crew-currency-snapshot?operatorId=${op.id}`}
+              target="_blank"
+              rel="noopener"
+              className="inline-flex items-center gap-2 rounded border border-navy-300 bg-white px-3 py-2 text-xs font-medium text-navy-900 hover:bg-navy-50"
+            >
+              Snapshot — {op.tradingName}
+            </a>
+          ))}
+          <span className="text-[10px] text-slate-500">
+            Opens print-ready view; Cmd-P → Save as PDF
+          </span>
+        </div>
       </header>
 
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
