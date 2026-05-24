@@ -47,7 +47,13 @@ export default async function SessionDetailPage({ params }: { params: Promise<{ 
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-navy-900">
-              {pilot?.fullName ?? 'Unknown pilot'}
+              {pilot ? (
+                <Link href={`/pilots/${encodeURIComponent(pilot.id)}`} className="hover:underline">
+                  {pilot.fullName}
+                </Link>
+              ) : (
+                'Unknown pilot'
+              )}
             </h1>
             <p className="text-xs text-slate-600">
               {operator?.tradingName} · {pilot?.role} · {pilot?.licenceNumber}

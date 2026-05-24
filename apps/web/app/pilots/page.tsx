@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import {
   CURRENCY_CATALOG,
   CURRENCY_CATEGORY,
@@ -84,13 +85,18 @@ export default function PilotsPage() {
                 return (
                   <tr key={pilot.id} className="hover:bg-slate-50">
                     <td className="sticky left-0 bg-white px-3 py-2 align-top">
-                      <div className="font-medium text-navy-900">{pilot.fullName}</div>
-                      <div className="text-[11px] text-slate-500">
-                        {operator?.tradingName ?? 'Unknown'} · {pilot.role} · {pilot.baseIcao}
-                      </div>
-                      <div className="text-[10px] uppercase tracking-wide text-slate-400">
-                        {pilot.phase.replace(/_/g, ' ')}
-                      </div>
+                      <Link
+                        href={`/pilots/${encodeURIComponent(pilot.id)}`}
+                        className="block hover:underline"
+                      >
+                        <div className="font-medium text-navy-900">{pilot.fullName}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {operator?.tradingName ?? 'Unknown'} · {pilot.role} · {pilot.baseIcao}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-wide text-slate-400">
+                          {pilot.phase.replace(/_/g, ' ')}
+                        </div>
+                      </Link>
                     </td>
                     {CURRENCY_CATALOG.map((c) => {
                       const rec = index.get(currencyMapKey(pilot.id, c.kind));
