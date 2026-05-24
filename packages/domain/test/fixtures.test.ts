@@ -4,9 +4,12 @@ import {
   DEMO_OPERATORS,
   DEMO_FLEETS,
   DEMO_PILOTS,
+  ICAO_COMPETENCY,
   buildDemoCurrencyRecords,
+  buildDemoSessions,
   indexCurrencyByPilotAndKind,
   currencyMapKey,
+  tallyCompetencies,
   CURRENCY_CATALOG,
   ITR_NA_ELIGIBLE,
   ITR_PHASES,
@@ -114,5 +117,58 @@ describe('buildDemoCurrencyRecords', () => {
     assert.ok(seen.has('ACTION'), 'demo must surface ACTION');
     assert.ok(seen.has('EXPIRED'), 'demo must surface EXPIRED');
     assert.ok(seen.has('NOT_APPLICABLE'), 'demo must surface NOT_APPLICABLE');
+  });
+});
+
+describe('buildDemoSessions', () => {
+  it('seeds at least 4 sessions covering DRAFT and SIGNED_OFF states', () => {
+    const { sessions } = buildDemoSessions(ASOF);
+    assert.ok(sessions.length >= 4, 'expected at least 4 demo sessions');
+    const statuses = new Set(sessions.map((s) => s.status));
+    assert.ok(statuses.has('DRAFT'), 'must include a DRAFT session');
+    assert.ok(statuses.has('SIGNED_OFF'), 'must include a SIGNED_OFF session');
+  });
+
+  it('every exercise grades ALL eight ICAO competencies', () => {
+    const { exercises } = buildDemoSessions(ASOF);
+    assert.ok(exercises.length > 0);
+    for (const ex of exercises) {
+      assert.equal(
+        ex.competencyGrades.length,
+        ICAO_COMPETENCY.length,
+        `exercise "${ex.title}" must grade all ${ICAO_COMPETENCY.length} competencies, got ${ex.competencyGrades.length}`,
+      );
+      const observed = new Set(ex.competencyGrades.map((g) => g.competency));
+      assert.equal(observed.size, ICAO_COMPETENCY.length, 'no duplicate competencies per exercise');
+    }
+  });
+
+  it('SIGNED_OFF sessions have a SignOff row with matching session id', () => {
+    const { sessions, signOffs } = buildDemoSessions(ASOF);
+    const signedOff = sessions.filter((s) => s.status === 'SIGNED_OFF');
+    for (const s of signedOff) {
+      const matching = signOffs.find((so) => so.sessionId === s.id);
+      assert.ok(matching, `session ${s.id} is SIGNED_OFF but has no SignOff row`);
+    }
+  });
+
+  it('DRAFT sessions do NOT carry a SignOff row', () => {
+    const { sessions, signOffs } = buildDemoSessions(ASOF);
+    const drafts = sessions.filter((s) => s.status === 'DRAFT');
+    for (const s of drafts) {
+      const found = signOffs.find((so) => so.sessionId === s.id);
+      assert.equal(found, undefined, `DRAFT session ${s.id} must not have a SignOff`);
+    }
+  });
+
+  it('tallyCompetencies sums grades into AS/S/MS/BS + NOT_OBSERVED buckets', () => {
+    const { exercises } = buildDemoSessions(ASOF);
+    const firstSessionExercises = exercises.filter((e) => e.sessionId === exercises[0]!.sessionId);
+    const tally = tallyCompetencies(firstSessionExercises);
+    for (const c of ICAO_COMPETENCY) {
+      const row = tally[c];
+      const total = row.AS + row.S + row.MS + row.BS + row.NOT_OBSERVED;
+      assert.equal(total, firstSessionExercises.length, `tally for ${c} must equal exercise count`);
+    }
   });
 });

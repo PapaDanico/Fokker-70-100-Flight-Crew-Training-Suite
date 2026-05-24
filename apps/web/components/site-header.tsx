@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { Plane } from 'lucide-react';
 
 const NAV_LINKS = [
-  { href: '/', label: 'Overview' },
+  { href: '/', label: 'Dashboard' },
   { href: '/pilots', label: 'Pilots' },
+  { href: '/sessions', label: 'Sessions' },
   { href: '/aircraft', label: 'Aircraft' },
   { href: '/compliance', label: 'Compliance' },
 ] as const;

@@ -1,16 +1,30 @@
 import type {
   CurrencyRecordId,
+  ExerciseId,
   FleetId,
   IsoDate,
   IsoDateTime,
   OperatorId,
   PilotId,
+  SessionId,
+  SignOffId,
+  UserId,
 } from './branded.js';
 import type { Fleet } from './aircraft.js';
 import { DEFAULT_OPERATOR_CONFIG, type Operator } from './operator.js';
 import type { Pilot, TrainingPhase } from './pilot.js';
 import { CURRENCY_CATALOG } from './currency-catalog.js';
 import { mayBeNotApplicable, type CurrencyKind, type CurrencyRecord } from './currency.js';
+import { ICAO_COMPETENCY, type Grade, type IcaoCompetency } from './competency.js';
+import type {
+  CompetencyGrade,
+  DebriefNote,
+  Exercise,
+  Session,
+  SessionKind,
+  SessionVenue,
+  SignOff,
+} from './training.js';
 
 /**
  * Deterministic, type-only demo fixtures for development screens and tests.
@@ -245,4 +259,423 @@ export function indexCurrencyByPilotAndKind(
 
 export function currencyMapKey(pilotId: PilotId, kind: CurrencyKind): string {
   return `${pilotId}|${kind}`;
+}
+
+// ----------------------------------------------------------------------------
+// Training session fixtures
+//
+// Demonstrates Session / Exercise / CompetencyGrade / SignOff / DebriefNote
+// composing per ICAO Doc 9868 PANS-TRG: every exercise grades all 8 ICAO
+// competencies, with NOT_OBSERVED used where a competency is genuinely not
+// observable in a given exercise. This is the data shape required to replace
+// the prototype's regex-based single-competency mapping (Phase-0 audit §4.1 /
+// CLAUDE.md §"CBTA competency grading").
+// ----------------------------------------------------------------------------
+
+const INSTRUCTOR_TRE = '11111111-cccc-cccc-cccc-000000000001' as UserId;
+const INSTRUCTOR_LCE = '22222222-cccc-cccc-cccc-000000000001' as UserId;
+
+/** Short aliases for grade values; produces compact, readable seed lines. */
+const AS: Grade = { scale: 'AS-S-MS-BS', value: 'AS' };
+const S: Grade = { scale: 'AS-S-MS-BS', value: 'S' };
+const MS: Grade = { scale: 'AS-S-MS-BS', value: 'MS' };
+const BS: Grade = { scale: 'AS-S-MS-BS', value: 'BS' };
+const NO = (reason: string): Grade => ({ scale: 'NOT_OBSERVED', reason });
+
+/**
+ * Build a CompetencyGrade tuple in ICAO_COMPETENCY order:
+ * 1. APPLICATION_OF_PROCEDURES
+ * 2. COMMUNICATION
+ * 3. FLIGHT_PATH_AUTOMATION
+ * 4. FLIGHT_PATH_MANUAL
+ * 5. LEADERSHIP_TEAMWORK
+ * 6. PROBLEM_SOLVING_DECISION_MAKING
+ * 7. SITUATION_AWARENESS
+ * 8. WORKLOAD_MANAGEMENT
+ */
+function competencies(
+  ...vs: [Grade, Grade, Grade, Grade, Grade, Grade, Grade, Grade]
+): ReadonlyArray<CompetencyGrade> {
+  return ICAO_COMPETENCY.map((competency, i) => ({ competency, grade: vs[i]! }));
+}
+
+interface ExerciseSpec {
+  title: string;
+  reference: string;
+  observableBehaviours?: ReadonlyArray<string>;
+  debriefNote?: string;
+  grades: ReadonlyArray<CompetencyGrade>;
+}
+
+interface SessionSpec {
+  sessionId: SessionId;
+  operatorId: OperatorId;
+  pilotId: PilotId;
+  pairedPilotId?: PilotId;
+  kind: SessionKind;
+  venue: SessionVenue;
+  ffsDesignation?: string;
+  instructorUserId: UserId;
+  startedDaysAgo: number;
+  durationHours: number;
+  status: 'DRAFT' | 'COMPLETED' | 'SIGNED_OFF';
+  overallGrade?: Grade;
+  signOffRole?: 'TRI' | 'TRE' | 'LCE' | 'LTC' | 'HOT';
+  signOffStatement?: string;
+  debriefAuthor?: UserId;
+  debriefBody?: string;
+  exercises: ReadonlyArray<ExerciseSpec>;
+}
+
+const DEMO_SESSION_SPECS: ReadonlyArray<SessionSpec> = [
+  {
+    sessionId: '11111111-dddd-dddd-dddd-000000000001' as SessionId,
+    operatorId: OP_JAK,
+    pilotId: P_ALPHA,
+    kind: 'LINE_CHECK',
+    venue: 'AIRCRAFT',
+    instructorUserId: INSTRUCTOR_LCE,
+    startedDaysAgo: 14,
+    durationHours: 2,
+    status: 'SIGNED_OFF',
+    overallGrade: S,
+    signOffRole: 'LCE',
+    signOffStatement:
+      'Annual Line Check completed in accordance with the JAK Operations Manual and KCARs 2025 ' +
+      'requirements. Captain met all required standards across the sector.',
+    debriefAuthor: INSTRUCTOR_LCE,
+    debriefBody:
+      'Strong situational awareness throughout. Departure brief was thorough — threats clearly ' +
+      'enumerated and mitigated. Cross-cockpit communication exemplary. No findings.',
+    exercises: [
+      {
+        title: 'Sector Departure — HKJK 06',
+        reference: 'OM-B §8.3 Departure procedures',
+        observableBehaviours: [
+          'Threat brief covered weather, NOTAMs, and high-ground SID profile',
+          'Standard callouts on the takeoff roll consistent with SOP',
+        ],
+        grades: competencies(S, S, S, AS, S, S, AS, S),
+      },
+      {
+        title: 'Cruise — fuel monitoring and FMC discipline',
+        reference: 'OM-B §9 Cruise procedures',
+        observableBehaviours: [
+          'Planned vs actual fuel cross-checked at each TOC and waypoint',
+          'Mode awareness maintained through ATC re-routing',
+        ],
+        grades: competencies(S, AS, AS, S, S, S, S, S),
+      },
+      {
+        title: 'Approach & Landing — HKJK 24 ILS',
+        reference: 'OM-B §10 Approach procedures',
+        observableBehaviours: [
+          'Stabilised by 1,000 ft AAL IMC per operator OpSpec',
+          'VMA-based approach speeds called and flown',
+        ],
+        grades: competencies(S, S, S, S, S, S, S, S),
+      },
+    ],
+  },
+  {
+    sessionId: '11111111-dddd-dddd-dddd-000000000002' as SessionId,
+    operatorId: OP_JAK,
+    pilotId: P_BRAVO,
+    kind: 'OPC',
+    venue: 'FFS',
+    ffsDesignation: 'SimAero Dinard FR-101',
+    instructorUserId: INSTRUCTOR_TRE,
+    startedDaysAgo: 8,
+    durationHours: 4,
+    status: 'SIGNED_OFF',
+    overallGrade: MS,
+    signOffRole: 'TRE',
+    signOffStatement:
+      'OPC conducted at SimAero Dinard FR-101 (EASA Level C). Candidate met minimum standard ' +
+      'with reinforcement required on EICAS interpretation. Remedial briefing completed before ' +
+      'sign-off; next OPC due 6 months from this date.',
+    debriefAuthor: INSTRUCTOR_TRE,
+    debriefBody:
+      'Engine failure on takeoff handled correctly: PPAA with 5° bank into the live engine, ' +
+      'V2 -> V2+10 maintained. EICAS scan was slow on the hydraulic dual-failure scenario; ' +
+      'this is the remedial focus. T-DODAR application improving but verbalisation needs work.',
+    exercises: [
+      {
+        title: 'Rejected Takeoff (below V1)',
+        reference: 'QRH ABNORMAL-RTO',
+        observableBehaviours: [
+          'PF callout "STOP, MY CONTROL" within 1 second of caution',
+          'Max braking + idle thrust + speedbrake + reverse',
+        ],
+        grades: competencies(AS, AS, S, AS, AS, S, S, S),
+      },
+      {
+        title: 'Engine Failure on Takeoff (above V1)',
+        reference: 'QRH ENG-FIRE',
+        observableBehaviours: [
+          'PPAA technique applied with 5° bank into live engine',
+          'V2 maintained until acceleration altitude',
+        ],
+        grades: competencies(S, S, S, AS, S, AS, S, S),
+      },
+      {
+        title: 'Hydraulic Dual System Failure (Sys 1 + Sys 2)',
+        reference: 'QRH HYD-DUAL',
+        observableBehaviours: [
+          'Identified loss of both systems via EICAS — slower than target time',
+          'QRH actions completed; manual reversion accepted',
+        ],
+        debriefNote:
+          'EICAS scan rate is the remediation focus. Recommend ground-school review of HYD ' +
+          'system architecture (Yr1 triennial matrix).',
+        grades: competencies(MS, S, S, S, S, MS, MS, MS),
+      },
+      {
+        title: 'Rapid Decompression / Emergency Descent',
+        reference: 'QRH PRESS-RAPID',
+        observableBehaviours: [
+          'Oxygen masks 100% donned as memory item',
+          'Emergency descent profile maintained',
+          'PA to cabin within 30 seconds',
+        ],
+        grades: competencies(S, S, S, S, MS, S, S, MS),
+      },
+    ],
+  },
+  {
+    sessionId: '22222222-dddd-dddd-dddd-000000000001' as SessionId,
+    operatorId: OP_IFLY,
+    pilotId: P_CHARLIE,
+    kind: 'OPC',
+    venue: 'FFS',
+    ffsDesignation: 'SimAero Dinard FR-101',
+    instructorUserId: INSTRUCTOR_TRE,
+    startedDaysAgo: 2,
+    durationHours: 4,
+    status: 'DRAFT',
+    exercises: [
+      {
+        title: 'Windshear on Approach (PWS alert)',
+        reference: 'QRH WSHEAR-RECOV',
+        observableBehaviours: [
+          'TOGA + pitch toward stick shaker',
+          'Speedbrake retracted; configuration unchanged',
+        ],
+        grades: competencies(S, S, AS, S, S, AS, S, S),
+      },
+      {
+        title: 'TCAS Resolution Advisory',
+        reference: 'QRH TCAS-RA',
+        observableBehaviours: ['RA followed promptly; AP disconnected', 'PM advised ATC "TCAS RA"'],
+        grades: competencies(S, AS, S, S, S, S, AS, S),
+      },
+    ],
+  },
+  {
+    sessionId: '22222222-dddd-dddd-dddd-000000000002' as SessionId,
+    operatorId: OP_IFLY,
+    pilotId: P_DELTA,
+    kind: 'ITR_FFS',
+    venue: 'FFS',
+    ffsDesignation: 'SimAero Dinard FR-101',
+    instructorUserId: INSTRUCTOR_TRE,
+    startedDaysAgo: 5,
+    durationHours: 4,
+    status: 'SIGNED_OFF',
+    overallGrade: S,
+    signOffRole: 'TRI',
+    signOffStatement:
+      'FFS Session 9 (Progress Check) completed. Candidate demonstrates readiness for the ' +
+      'KCAA Skills Test. Note: FFS 9 is a Progress Check only — Skills Test is a separate ' +
+      'KCAA-administered session that precedes Base Training on the actual aircraft per ' +
+      'ICAO Doc 9868 §4.5.1 (ZFTT not available at Level C).',
+    debriefAuthor: INSTRUCTOR_TRE,
+    debriefBody:
+      'Candidate handles single failures crisply. Workload management still has headroom — ' +
+      'recommend deliberate "out-loud" prioritisation during high-task-rate sequences. ' +
+      'CRM/TEM behaviours strong. Ready for Skills Test.',
+    exercises: [
+      {
+        title: 'Normal Takeoff — Flaps 0 (default)',
+        reference: 'OM-B Takeoff Flap Policy',
+        observableBehaviours: [
+          'EICAS configuration confirmed before takeoff roll',
+          'TOCWS limitation discussed and understood (no alert for Flaps 0)',
+        ],
+        grades: competencies(S, S, S, S, NO('single-pilot sim segment'), S, S, S),
+      },
+      {
+        title: 'Engine-Out Go-Around (OEI)',
+        reference: 'QRH GA-OEI',
+        observableBehaviours: [
+          'PPAA technique applied',
+          '5° bank into live engine maintained throughout',
+        ],
+        grades: competencies(S, S, S, S, S, S, S, MS),
+      },
+      {
+        title: 'Cat II ILS Approach to Landing',
+        reference: 'OM-B Cat II Procedures',
+        observableBehaviours: [
+          'Approach briefing complete with autoland criteria',
+          'Crew callouts at DH per SOP',
+        ],
+        grades: competencies(S, S, AS, S, S, S, S, S),
+      },
+      {
+        title: 'Smoke / Fire / Fumes (Galley)',
+        reference: 'QRH SMOKE-FUMES',
+        observableBehaviours: [
+          'Memory items: O2 100%, smoke goggles, crew comms re-established',
+          'Land at nearest suitable decision verbalised',
+        ],
+        grades: competencies(S, AS, S, S, S, AS, S, S),
+      },
+      {
+        title: 'Diversion — fuel and weather decision',
+        reference: 'OM-A Decision Framework T-DODAR',
+        observableBehaviours: [
+          'T-DODAR applied: Time available diagnosed, options enumerated',
+          'Decision rationale verbalised; FO concur cycle completed',
+        ],
+        debriefNote:
+          'Decision quality strong. Workload management note: more deliberate task allocation ' +
+          'to PM during high-rate phase would improve further.',
+        grades: competencies(AS, AS, S, S, S, AS, AS, MS),
+      },
+    ],
+  },
+];
+
+const DEMO_INSTRUCTORS: ReadonlyMap<UserId, string> = new Map([
+  [INSTRUCTOR_TRE, 'Capt. Demo TRE'],
+  [INSTRUCTOR_LCE, 'Capt. Demo LCE'],
+]);
+
+export function lookupInstructorName(userId: UserId): string {
+  return DEMO_INSTRUCTORS.get(userId) ?? 'Unknown Instructor';
+}
+
+export interface DemoSessions {
+  sessions: ReadonlyArray<Session>;
+  exercises: ReadonlyArray<Exercise>;
+  competencyGrades: ReadonlyArray<{
+    exerciseId: ExerciseId;
+    grades: ReadonlyArray<CompetencyGrade>;
+  }>;
+  signOffs: ReadonlyArray<SignOff>;
+  debriefNotes: ReadonlyArray<DebriefNote>;
+}
+
+export function buildDemoSessions(asOf: Date = new Date()): DemoSessions {
+  const sessions: Session[] = [];
+  const exercises: Exercise[] = [];
+  const competencyGrades: Array<{
+    exerciseId: ExerciseId;
+    grades: ReadonlyArray<CompetencyGrade>;
+  }> = [];
+  const signOffs: SignOff[] = [];
+  const debriefNotes: DebriefNote[] = [];
+
+  for (const spec of DEMO_SESSION_SPECS) {
+    const startedAt = ISO_DATETIME(addDays(asOf, -spec.startedDaysAgo));
+    const endedAtDate = new Date(addDays(asOf, -spec.startedDaysAgo));
+    endedAtDate.setUTCHours(endedAtDate.getUTCHours() + spec.durationHours);
+    const endedAt = ISO_DATETIME(endedAtDate);
+
+    const session: Session = {
+      id: spec.sessionId,
+      operatorId: spec.operatorId,
+      pilotId: spec.pilotId,
+      kind: spec.kind,
+      venue: spec.venue,
+      startedAt,
+      endedAt,
+      ...(spec.ffsDesignation !== undefined ? { ffsDesignation: spec.ffsDesignation } : {}),
+      instructorUserId: spec.instructorUserId,
+      ...(spec.pairedPilotId !== undefined ? { pairedPilotId: spec.pairedPilotId } : {}),
+      ...(spec.overallGrade !== undefined ? { overallGrade: spec.overallGrade } : {}),
+      status: spec.status,
+      createdAt: startedAt,
+      updatedAt: endedAt,
+    };
+    sessions.push(session);
+
+    spec.exercises.forEach((ex, idx) => {
+      const exerciseId =
+        `${spec.sessionId}-ex-${(idx + 1).toString().padStart(2, '0')}` as ExerciseId;
+      const exercise: Exercise = {
+        id: exerciseId,
+        sessionId: spec.sessionId,
+        ordinal: idx + 1,
+        title: ex.title,
+        reference: ex.reference,
+        ...(ex.observableBehaviours !== undefined
+          ? { observableBehaviours: ex.observableBehaviours }
+          : {}),
+        competencyGrades: ex.grades,
+        ...(ex.debriefNote !== undefined ? { debriefNote: ex.debriefNote } : {}),
+        createdAt: startedAt,
+      };
+      exercises.push(exercise);
+      competencyGrades.push({ exerciseId, grades: ex.grades });
+    });
+
+    if (
+      spec.status === 'SIGNED_OFF' &&
+      spec.signOffRole !== undefined &&
+      spec.signOffStatement !== undefined
+    ) {
+      const signOff: SignOff = {
+        id: `${spec.sessionId}-signoff` as SignOffId,
+        sessionId: spec.sessionId,
+        operatorId: spec.operatorId,
+        signedByUserId: spec.instructorUserId,
+        signedByRole: spec.signOffRole,
+        signedAt: endedAt,
+        statement: spec.signOffStatement,
+      };
+      signOffs.push(signOff);
+    }
+
+    if (spec.debriefAuthor !== undefined && spec.debriefBody !== undefined) {
+      debriefNotes.push({
+        sessionId: spec.sessionId,
+        authoredByUserId: spec.debriefAuthor,
+        body: spec.debriefBody,
+        createdAt: endedAt,
+      });
+    }
+  }
+
+  return { sessions, exercises, competencyGrades, signOffs, debriefNotes };
+}
+
+/**
+ * Tally grade values per competency across a set of exercises. Used by the
+ * session-detail UI to render an aggregate view. Counts {AS, S, MS, BS,
+ * NOT_OBSERVED} per competency.
+ */
+export type CompetencyTally = Readonly<
+  Record<IcaoCompetency, { AS: number; S: number; MS: number; BS: number; NOT_OBSERVED: number }>
+>;
+
+export function tallyCompetencies(exercises: ReadonlyArray<Exercise>): CompetencyTally {
+  const tally = {} as {
+    [k in IcaoCompetency]: { AS: number; S: number; MS: number; BS: number; NOT_OBSERVED: number };
+  };
+  for (const c of ICAO_COMPETENCY) {
+    tally[c] = { AS: 0, S: 0, MS: 0, BS: 0, NOT_OBSERVED: 0 };
+  }
+  for (const ex of exercises) {
+    for (const cg of ex.competencyGrades) {
+      if (cg.grade.scale === 'NOT_OBSERVED') {
+        tally[cg.competency].NOT_OBSERVED += 1;
+      } else if (cg.grade.scale === 'AS-S-MS-BS') {
+        tally[cg.competency][cg.grade.value] += 1;
+      }
+      // ICAO-1-5 scale is not exercised by the demo fixtures; ignored here.
+    }
+  }
+  return tally;
 }
