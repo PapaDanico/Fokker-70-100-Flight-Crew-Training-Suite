@@ -7,7 +7,9 @@ import { operatorStatusEnum } from './enums.js';
  * operator_id as a FK and is protected by an RLS policy (see infra/migrations/0001).
  */
 export const operators = pgTable('operators', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   legalName: text('legal_name').notNull(),
   tradingName: text('trading_name').notNull(),
   shortCode: text('short_code').notNull().unique(),

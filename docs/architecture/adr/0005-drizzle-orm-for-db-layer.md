@@ -6,7 +6,7 @@
 
 ## Context
 
-CLAUDE.md §"Coding conventions" / Backend left the migration tool open: *"Migrations via drizzle-kit or node-pg-migrate (decide in Sprint 1; document the choice)."*
+CLAUDE.md §"Coding conventions" / Backend left the migration tool open: _"Migrations via drizzle-kit or node-pg-migrate (decide in Sprint 1; document the choice)."_
 
 ADR 0004 fixes `@dnca/domain` as the source of truth for entity types. Whatever DB layer we choose must (a) be TypeScript-first so the storage schema can be aligned mechanically with the domain types, (b) not block the use of raw SQL for the parts that aren't tables (RLS policies, audit triggers, custom functions), (c) produce migrations that are reviewable and replayable in CI, and (d) yield a type-safe query interface so backend handlers cannot silently send malformed queries to production.
 

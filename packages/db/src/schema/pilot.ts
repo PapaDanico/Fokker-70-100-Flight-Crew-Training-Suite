@@ -17,7 +17,9 @@ import { operators } from './operator.js';
 export const pilots = pgTable(
   'pilots',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     operatorId: uuid('operator_id')
       .notNull()
       .references(() => operators.id, { onDelete: 'restrict' }),

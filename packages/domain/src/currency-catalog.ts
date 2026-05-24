@@ -46,7 +46,10 @@ export const CURRENCY_CATALOG: ReadonlyArray<CurrencyCatalogEntry> = [
     kind: 'elpLevel',
     label: 'English Language Proficiency (ELP)',
     category: 'Personal',
-    cycle: { kind: 'per-event', description: 'Level 4 = 3 yr · Level 5 = 6 yr · Level 6 = lifetime' },
+    cycle: {
+      kind: 'per-event',
+      description: 'Level 4 = 3 yr · Level 5 = 6 yr · Level 6 = lifetime',
+    },
     primarySource: 'ICAO Annex 1 §1.2.9',
   },
   {
@@ -150,7 +153,8 @@ export const CURRENCY_CATALOG: ReadonlyArray<CurrencyCatalogEntry> = [
     category: 'Special',
     cycle: { kind: 'months', months: 36 },
     primarySource: 'ICAO Doc 9574 / Operator OM-B',
-    notes: 'Confirm cycle vs operator OM-B; some operators treat as one-off + continuing operational compliance.',
+    notes:
+      'Confirm cycle vs operator OM-B; some operators treat as one-off + continuing operational compliance.',
   },
   {
     kind: 'egpwsTaws',

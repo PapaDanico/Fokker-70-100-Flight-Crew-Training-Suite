@@ -13,6 +13,7 @@ Kenya Data Protection Act 2019 requires controllers to maintain processing recor
 The Phase-0 audit's finding §2.1 records that the prototype has no audit trail.
 
 The choice space:
+
 1. **Application-only audit log** — every mutation handler writes an event row alongside the mutation. Brittle: developer discipline is the only thing preventing drift.
 2. **Application-emitted, database-immutable audit log** — the application writes events; the database physically prevents updates and deletes on the event table.
 3. **External event-store service** (e.g. EventStoreDB) — strongest event-sourcing semantics; new operational dependency; cross-store consistency to manage.
@@ -27,7 +28,7 @@ Field set per `AuditEvent` (see `packages/domain/src/governance.ts`):
 
 - `id`, `operator_id`, `actor_user_id`, `actor_role`
 - `entity_type`, `entity_id`
-- `action` (CREATE / UPDATE / SOFT_DELETE / HARD_DELETE / SIGN_OFF / EXPORT / ASSESSMENT_GENERATED / KCAA_SUBMISSION_* / AUTH_* / ROLE_*)
+- `action` (`CREATE` / `UPDATE` / `SOFT_DELETE` / `HARD_DELETE` / `SIGN_OFF` / `EXPORT` / `ASSESSMENT_GENERATED` / `KCAA_SUBMISSION_*` / `AUTH_*` / `ROLE_*`)
 - `before_state` (jsonb), `after_state` (jsonb)
 - `occurred_at`, `request_id`, `ip_address`, `user_agent`
 

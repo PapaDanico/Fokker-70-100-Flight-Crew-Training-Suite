@@ -26,7 +26,9 @@ import { pilots } from './pilot.js';
 export const sessions = pgTable(
   'sessions',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     operatorId: uuid('operator_id')
       .notNull()
       .references(() => operators.id, { onDelete: 'restrict' }),
@@ -57,7 +59,9 @@ export const sessions = pgTable(
 export const exercises = pgTable(
   'exercises',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     operatorId: uuid('operator_id')
       .notNull()
       .references(() => operators.id, { onDelete: 'restrict' }),
@@ -103,7 +107,9 @@ export const competencyGrades = pgTable(
 );
 
 export const signOffs = pgTable('sign_offs', {
-  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
   sessionId: uuid('session_id')
     .notNull()
     .references(() => sessions.id, { onDelete: 'restrict' }),
@@ -131,7 +137,9 @@ export const debriefNotes = pgTable('debrief_notes', {
 export const assessmentResults = pgTable(
   'assessment_results',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     operatorId: uuid('operator_id')
       .notNull()
       .references(() => operators.id, { onDelete: 'restrict' }),
@@ -166,7 +174,11 @@ export type AssessmentResultRow = typeof assessmentResults.$inferSelect;
  * Helper for callers that hold a domain Grade and need the (scale, value) pair
  * to store on sessions / competency_grades.
  */
-export function gradeToColumns(g: Grade): { scale: string; value: string | null; notObservedReason: string | null } {
+export function gradeToColumns(g: Grade): {
+  scale: string;
+  value: string | null;
+  notObservedReason: string | null;
+} {
   if (g.scale === 'NOT_OBSERVED') {
     return { scale: 'NOT_OBSERVED', value: null, notObservedReason: g.reason };
   }

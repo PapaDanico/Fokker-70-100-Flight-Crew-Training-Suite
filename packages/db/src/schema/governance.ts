@@ -6,7 +6,9 @@ import { operators } from './operator.js';
 export const users = pgTable(
   'users',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     email: text('email').notNull().unique(),
     fullName: text('full_name').notNull(),
     active: boolean('active').notNull().default(true),
@@ -21,7 +23,9 @@ export const users = pgTable(
 export const roleAssignments = pgTable(
   'role_assignments',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     userId: uuid('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'restrict' }),
@@ -33,7 +37,9 @@ export const roleAssignments = pgTable(
   },
   (t) => ({
     userOperatorIdx: index('role_assignments_user_operator_idx').on(t.userId, t.operatorId),
-    activeIdx: index('role_assignments_active_idx').on(t.userId, t.role).where(sql`${t.revokedAt} IS NULL`),
+    activeIdx: index('role_assignments_active_idx')
+      .on(t.userId, t.role)
+      .where(sql`${t.revokedAt} IS NULL`),
   }),
 );
 
@@ -47,7 +53,9 @@ export const roleAssignments = pgTable(
 export const auditEvents = pgTable(
   'audit_events',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     operatorId: uuid('operator_id').references(() => operators.id, { onDelete: 'restrict' }),
     actorUserId: uuid('actor_user_id'),
     actorRole: userRoleEnum('actor_role'),

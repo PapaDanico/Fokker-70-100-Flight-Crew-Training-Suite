@@ -10,7 +10,8 @@ export const FAA_14_CFR_121: RegulatoryInstrument = {
   framework: 'FAA',
   instrumentId: 'FAA-14-CFR-121',
   shortLabel: '14 CFR Part 121',
-  longLabel: '14 CFR Part 121 — Operating Requirements: Domestic, Flag, and Supplemental Operations',
+  longLabel:
+    '14 CFR Part 121 — Operating Requirements: Domestic, Flag, and Supplemental Operations',
 };
 
 export const FAA_14_CFR_119: RegulatoryInstrument = {
@@ -31,7 +32,8 @@ export const FAA_14_CFR_117: RegulatoryInstrument = {
   framework: 'FAA',
   instrumentId: 'FAA-14-CFR-117',
   shortLabel: '14 CFR Part 117',
-  longLabel: '14 CFR Part 117 — Flight and Duty Limitations and Rest Requirements: Flightcrew Members',
+  longLabel:
+    '14 CFR Part 117 — Flight and Duty Limitations and Rest Requirements: Flightcrew Members',
 };
 
 export const FAA_14_CFR_5: RegulatoryInstrument = {
@@ -52,7 +54,8 @@ export const FAA_AC_120_71B: RegulatoryInstrument = {
   framework: 'FAA',
   instrumentId: 'FAA-AC-120-71B',
   shortLabel: 'AC 120-71B',
-  longLabel: 'FAA Advisory Circular 120-71B — Standard Operating Procedures and Pilot Monitoring Duties',
+  longLabel:
+    'FAA Advisory Circular 120-71B — Standard Operating Procedures and Pilot Monitoring Duties',
 };
 
 export const FAA_AC_120_82: RegulatoryInstrument = {

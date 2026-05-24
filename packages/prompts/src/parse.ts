@@ -65,12 +65,16 @@ function stripMarkdownFences(text: string): string {
  */
 export function buildRetryFollowUp(failure: Extract<ParseAssessmentResult, { ok: false }>): string {
   if (failure.error.kind === 'invalid-json') {
-    return `Your previous response was not valid JSON: ${failure.error.message}. ` +
+    return (
+      `Your previous response was not valid JSON: ${failure.error.message}. ` +
       `Re-emit the entire assessment as a single JSON array with no preamble, ` +
-      `commentary, or markdown fences. Match the schema exactly.`;
+      `commentary, or markdown fences. Match the schema exactly.`
+    );
   }
   const issues = (failure.error.issues ?? []).map((i) => `- ${i.path}: ${i.message}`).join('\n');
-  return `Your previous response did not match the required schema:\n${issues}\n\n` +
+  return (
+    `Your previous response did not match the required schema:\n${issues}\n\n` +
     `Re-emit the entire assessment as a JSON array of exactly 5 questions ` +
-    `matching the schema. Do not add commentary or markdown fences.`;
+    `matching the schema. Do not add commentary or markdown fences.`
+  );
 }

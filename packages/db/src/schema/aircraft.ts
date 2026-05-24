@@ -1,12 +1,23 @@
 import { sql } from 'drizzle-orm';
-import { boolean, date, integer, pgTable, text, uuid, uniqueIndex, index } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  date,
+  integer,
+  pgTable,
+  text,
+  uuid,
+  uniqueIndex,
+  index,
+} from 'drizzle-orm/pg-core';
 import { fleetVariantEnum } from './enums.js';
 import { operators } from './operator.js';
 
 export const fleets = pgTable(
   'fleets',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     operatorId: uuid('operator_id')
       .notNull()
       .references(() => operators.id, { onDelete: 'restrict' }),
@@ -22,7 +33,9 @@ export const fleets = pgTable(
 export const aircraft = pgTable(
   'aircraft',
   {
-    id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+    id: uuid('id')
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
     operatorId: uuid('operator_id')
       .notNull()
       .references(() => operators.id, { onDelete: 'restrict' }),

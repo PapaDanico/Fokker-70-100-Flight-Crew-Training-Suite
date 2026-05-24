@@ -45,7 +45,8 @@ export const ICAO_DOC_9868: RegulatoryInstrument = {
   framework: 'ICAO',
   instrumentId: 'ICAO-Doc-9868',
   shortLabel: 'Doc 9868',
-  longLabel: 'ICAO Doc 9868 — PANS-TRG (Procedures for Air Navigation Services — Training), 3rd Ed 2020',
+  longLabel:
+    'ICAO Doc 9868 — PANS-TRG (Procedures for Air Navigation Services — Training), 3rd Ed 2020',
 };
 
 export const ICAO_DOC_9859: RegulatoryInstrument = {
@@ -73,7 +74,8 @@ export const ICAO_DOC_9284: RegulatoryInstrument = {
   framework: 'ICAO',
   instrumentId: 'ICAO-Doc-9284',
   shortLabel: 'Doc 9284',
-  longLabel: 'ICAO Doc 9284 — Technical Instructions for the Safe Transport of Dangerous Goods by Air',
+  longLabel:
+    'ICAO Doc 9284 — Technical Instructions for the Safe Transport of Dangerous Goods by Air',
 };
 
 export const ICAO_DOC_10000: RegulatoryInstrument = {
@@ -87,7 +89,8 @@ export const ICAO_DOC_8335: RegulatoryInstrument = {
   framework: 'ICAO',
   instrumentId: 'ICAO-Doc-8335',
   shortLabel: 'Doc 8335',
-  longLabel: 'ICAO Doc 8335 — Manual of Procedures for Operations Inspection, Certification and Continued Surveillance',
+  longLabel:
+    'ICAO Doc 8335 — Manual of Procedures for Operations Inspection, Certification and Continued Surveillance',
 };
 
 export const ICAO_INSTRUMENTS: ReadonlyArray<RegulatoryInstrument> = [

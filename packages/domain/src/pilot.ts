@@ -22,11 +22,7 @@ export const TRAINING_PHASE = [
 ] as const;
 export type TrainingPhase = (typeof TRAINING_PHASE)[number];
 
-export const ITR_PHASES: ReadonlySet<TrainingPhase> = new Set([
-  'ITR_Ground',
-  'ITR_FBT',
-  'ITR_FFS',
-]);
+export const ITR_PHASES: ReadonlySet<TrainingPhase> = new Set(['ITR_Ground', 'ITR_FBT', 'ITR_FFS']);
 
 export function isInTraining(phase: TrainingPhase): boolean {
   return ITR_PHASES.has(phase);

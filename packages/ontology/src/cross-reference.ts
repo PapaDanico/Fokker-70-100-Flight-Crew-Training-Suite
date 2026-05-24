@@ -1,10 +1,5 @@
 import type { Citation } from './citation.js';
-import {
-  EASA_AMC1_ORO_FC_230,
-  EASA_PART_CAT,
-  EASA_PART_FCL,
-  EASA_PART_ORO,
-} from './easa.js';
+import { EASA_AMC1_ORO_FC_230, EASA_PART_CAT, EASA_PART_FCL, EASA_PART_ORO } from './easa.js';
 import {
   FAA_14_CFR_117,
   FAA_14_CFR_119,
@@ -26,13 +21,7 @@ import {
   ICAO_DOC_9966,
   ICAO_DOC_10000,
 } from './icao.js';
-import {
-  LN_29_2026,
-  LN_30_2026,
-  LN_31_2026,
-  LN_42_2026,
-  REG_56_2,
-} from './kcars-2025.js';
+import { LN_29_2026, LN_30_2026, LN_31_2026, LN_42_2026, REG_56_2 } from './kcars-2025.js';
 
 /**
  * Domain-level cross-reference matrix. Each row is a regulatory subject area
@@ -65,10 +54,7 @@ export const DOMAIN_CROSS_REFERENCE: ReadonlyArray<DomainCrossReference> = [
     kcars: [
       { instrument: LN_42_2026, section: 'Third Schedule', subject: 'Binding OM content list' },
     ],
-    faa: [
-      { instrument: FAA_14_CFR_119 },
-      { instrument: FAA_14_CFR_121, section: 'Subpart G' },
-    ],
+    faa: [{ instrument: FAA_14_CFR_119 }, { instrument: FAA_14_CFR_121, section: 'Subpart G' }],
     easa: [{ instrument: EASA_PART_ORO }],
     icao: [{ instrument: ICAO_DOC_8335 }],
   },
@@ -82,7 +68,11 @@ export const DOMAIN_CROSS_REFERENCE: ReadonlyArray<DomainCrossReference> = [
   {
     domain: 'Training & Checking',
     kcars: [
-      { instrument: LN_42_2026, section: 'Third Schedule §2.2', subject: 'Mandatory training topics' },
+      {
+        instrument: LN_42_2026,
+        section: 'Third Schedule §2.2',
+        subject: 'Mandatory training topics',
+      },
     ],
     faa: [{ instrument: FAA_14_CFR_121, section: 'Subparts N & O' }],
     easa: [{ instrument: EASA_AMC1_ORO_FC_230 }],

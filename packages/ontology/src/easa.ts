@@ -37,7 +37,8 @@ export const EASA_CS_FSTD_A: RegulatoryInstrument = {
   framework: 'EASA',
   instrumentId: 'EASA-CS-FSTD-A',
   shortLabel: 'CS-FSTD(A)',
-  longLabel: 'EASA CS-FSTD(A) — Certification Specifications for Aeroplane Flight Simulation Training Devices',
+  longLabel:
+    'EASA CS-FSTD(A) — Certification Specifications for Aeroplane Flight Simulation Training Devices',
 };
 
 export const EASA_AMC1_ORO_FC_220: RegulatoryInstrument = {

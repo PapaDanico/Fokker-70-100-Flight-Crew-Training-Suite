@@ -27,7 +27,7 @@ You are working alongside Capt. Dan Ng'ong'a, who is the domain expert and produ
 3. **Preserve regulatory and technical accuracy** at all costs — see "Things you must not get wrong" below
 4. **Operate autonomously on engineering decisions** where the domain isn't directly affected — language idioms, library choices within the stack, test patterns, refactoring
 
-Capt. Ng'ong'a frequently delegates with phrases like *"your call"* or *"go for it"*. When this happens, proceed with best-practice choices and surface the major decision points after the fact, not before. Iterate; don't ask permission for every step.
+Capt. Ng'ong'a frequently delegates with phrases like _"your call"_ or _"go for it"_. When this happens, proceed with best-practice choices and surface the major decision points after the fact, not before. Iterate; don't ask permission for every step.
 
 ---
 
@@ -136,6 +136,7 @@ Special: RVSM, EGPWS/TAWS, Windshear/UPRT, **Cat II/III currency (separate)**, *
 ### Audit logging
 
 Every state change writes an `AuditEvent`:
+
 - `id` (uuid), `operator_id`, `actor_user_id`, `actor_role`, `entity_type`, `entity_id`, `action` (enum: CREATE/UPDATE/DELETE/SIGN_OFF/EXPORT), `before_state` (jsonb), `after_state` (jsonb), `occurred_at`, `request_id`, `ip_address`
 
 `AuditEvent` rows are immutable. Postgres triggers reject UPDATE and DELETE on the table.
@@ -214,6 +215,7 @@ Default to **PDF** for inspector-facing exports. Provide CSV/JSON as developer-f
 A currency item has: `valid_from`, `valid_to` (computed from `valid_from` + cycle months), `status` (CURRENT / CAUTION / ACTION / EXPIRED / NOT_APPLICABLE).
 
 Status thresholds:
+
 - Current: > 90 days to expiry
 - Caution: 31–90 days
 - Action: 1–30 days
@@ -285,13 +287,13 @@ Pin model strings; do not rely on aliases. Version pinning is part of the audit 
 
 ## Build sequence (10 weeks)
 
-| Sprint | Weeks | Goal |
-|---|---|---|
-| 1 | 1–2 | Foundation — backend skeleton, Postgres schema, auth, audit logging, one tenant. Port data model from `/prototype/` verbatim. |
-| 2 | 3–4 | UI port — replace browser-local with API calls. Add missing currency types. |
-| 3 | 5–6 | Hardening — RBAC, KCAA exports, document version control, notification engine. |
-| 4 | 7–8 | Domain depth — schema-validated AI, proper multi-competency CBTA, citation engine, per-operator config. |
-| 5 | 9–10 | Production readiness — multi-tenant cutover, demo env, deployment automation, observability, security review, ODPC registration. |
+| Sprint | Weeks | Goal                                                                                                                             |
+| ------ | ----- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 1      | 1–2   | Foundation — backend skeleton, Postgres schema, auth, audit logging, one tenant. Port data model from `/prototype/` verbatim.    |
+| 2      | 3–4   | UI port — replace browser-local with API calls. Add missing currency types.                                                      |
+| 3      | 5–6   | Hardening — RBAC, KCAA exports, document version control, notification engine.                                                   |
+| 4      | 7–8   | Domain depth — schema-validated AI, proper multi-competency CBTA, citation engine, per-operator config.                          |
+| 5      | 9–10  | Production readiness — multi-tenant cutover, demo env, deployment automation, observability, security review, ODPC registration. |
 
 Each sprint ends with a deployable build and a demo to Capt. Ng'ong'a.
 
@@ -349,6 +351,6 @@ When adding a new architectural decision, write an ADR in `/docs/architecture/ad
 
 ---
 
-*This file is the source of truth for Claude Code working in this repository. Update it when project direction changes; do not let it drift from reality.*
+_This file is the source of truth for Claude Code working in this repository. Update it when project direction changes; do not let it drift from reality._
 
-*Last updated: 24 May 2026 — initial production rebuild kick-off.*
+_Last updated: 24 May 2026 — initial production rebuild kick-off._

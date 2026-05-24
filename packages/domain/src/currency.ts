@@ -9,16 +9,16 @@ import type {
 } from './branded.js';
 import { isInTraining, type TrainingPhase } from './pilot.js';
 
-export const CURRENCY_CATEGORY = [
-  'Personal',
-  'Type',
-  'Operational',
-  'Safety',
-  'Special',
-] as const;
+export const CURRENCY_CATEGORY = ['Personal', 'Type', 'Operational', 'Safety', 'Special'] as const;
 export type CurrencyCategory = (typeof CURRENCY_CATEGORY)[number];
 
-export const CURRENCY_STATUS = ['CURRENT', 'CAUTION', 'ACTION', 'EXPIRED', 'NOT_APPLICABLE'] as const;
+export const CURRENCY_STATUS = [
+  'CURRENT',
+  'CAUTION',
+  'ACTION',
+  'EXPIRED',
+  'NOT_APPLICABLE',
+] as const;
 export type CurrencyStatus = (typeof CURRENCY_STATUS)[number];
 
 /**

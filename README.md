@@ -58,7 +58,7 @@ Per operator tenant:
 ## Tech stack (target)
 
 - **Frontend:** Next.js 14+ (App Router) · React · TypeScript · Tailwind CSS · Recharts · lucide-react
-- **Backend:** Node.js / TypeScript on Fastify or NestJS *(decide in Sprint 1)*
+- **Backend:** Node.js / TypeScript on Fastify or NestJS _(decide in Sprint 1)_
 - **Database:** PostgreSQL 15+ with row-level security for multi-tenancy
 - **Auth:** WorkOS or Clerk for SSO + RBAC; magic-link fallback for operators without SSO
 - **Audit log:** append-only event store (Postgres table with immutability triggers, or EventStoreDB)
@@ -103,18 +103,23 @@ Per operator tenant:
 Ten-week plan to first paying-operator deployment readiness.
 
 ### Sprint 1 (weeks 1–2): Foundation
+
 Backend skeleton, Postgres schema (single tenant for now), auth, audit logging, one operator tenant seeded. Port data model from `/prototype/` verbatim.
 
 ### Sprint 2 (weeks 3–4): UI port
+
 Port prototype UI tab-by-tab. Replace browser-local storage with API calls. Add missing currency types: aerodrome qualification, route qualification, Cat II/III separate, PIC recency (90-day rule), recent landings, crew pairing, ELP Level, passport/visa.
 
 ### Sprint 3 (weeks 5–6): Hardening
+
 RBAC enforcement, KCAA export formats (PDF + structured), document version control with diff view, notification engine (email/SMS for currency expiry, recurrent due, submission deadlines).
 
 ### Sprint 4 (weeks 7–8): Domain depth
+
 AI assessment hardening with schema validation + retry; proper per-exercise multi-competency CBTA grading (replace prototype's regex heuristic); citation engine (every regulatory claim hyperlinks to source); per-operator configuration (stabilised approach gates, OpSpec parameters, fleet data).
 
 ### Sprint 5 (weeks 9–10): Production readiness
+
 Multi-tenant cutover, demo environment, deployment automation, observability, security review, penetration test, Kenya ODPC registration as data controller.
 
 ---
@@ -144,14 +149,14 @@ Multi-tenant cutover, demo environment, deployment automation, observability, se
 
 **Primary binding (Kenya):**
 
-| Instrument | Subject | Effective |
-|---|---|---|
-| LN 29/2026 | Operations — Aeroplanes | 03 Mar 2026 |
-| LN 30/2026 | SMS / ATS | 03 Mar 2026 |
-| LN 31/2026 | Aviation Security / PEL | 03 Mar 2026 |
-| LN 37/2026 | Airworthiness | 03 Mar 2026 |
-| LN 40/2026 | UAS | 03 Mar 2026 |
-| LN 41/2026 | Aerodromes | 03 Mar 2026 |
+| Instrument | Subject                                                  | Effective   |
+| ---------- | -------------------------------------------------------- | ----------- |
+| LN 29/2026 | Operations — Aeroplanes                                  | 03 Mar 2026 |
+| LN 30/2026 | SMS / ATS                                                | 03 Mar 2026 |
+| LN 31/2026 | Aviation Security / PEL                                  | 03 Mar 2026 |
+| LN 37/2026 | Airworthiness                                            | 03 Mar 2026 |
+| LN 40/2026 | UAS                                                      | 03 Mar 2026 |
+| LN 41/2026 | Aerodromes                                               | 03 Mar 2026 |
 | LN 42/2026 | AOC & Administration (Third Schedule binding OM content) | 06 Mar 2026 |
 
 **Key binding provisions:**
@@ -186,12 +191,12 @@ Browser-local storage is acceptable only for the frozen prototype. Production da
 
 Engagement structure DNCA offers operators:
 
-| Phase | Deliverable | Duration | Indicative Fee (USD) |
-|---|---|---|---|
-| Phase 0 — Discovery | KCARs 2025 readiness audit + remediation roadmap | 2 weeks | 8,000 – 12,000 |
-| Phase 1 — Compliance Package | OM revision + training programmes + KCAA submission | 60–90 days | 65,000 – 110,000 |
-| Phase 2 — Platform Deployment | This platform configured to operator | Months 4–9 | 35,000 – 60,000 |
-| Phase 3 — Continuous | TRI/TRE services + reviews + KCAA liaison | Ongoing | 25,000 – 40,000 / yr |
+| Phase                         | Deliverable                                         | Duration   | Indicative Fee (USD) |
+| ----------------------------- | --------------------------------------------------- | ---------- | -------------------- |
+| Phase 0 — Discovery           | KCARs 2025 readiness audit + remediation roadmap    | 2 weeks    | 8,000 – 12,000       |
+| Phase 1 — Compliance Package  | OM revision + training programmes + KCAA submission | 60–90 days | 65,000 – 110,000     |
+| Phase 2 — Platform Deployment | This platform configured to operator                | Months 4–9 | 35,000 – 60,000      |
+| Phase 3 — Continuous          | TRI/TRE services + reviews + KCAA liaison           | Ongoing    | 25,000 – 40,000 / yr |
 
 Phase 0 fee credits against Phase 1 if Operator continues within 60 days.
 
@@ -212,7 +217,7 @@ Reference calls require explicit written authorisation from each operator's Acco
 Principal, DN Consultancy Aviation
 TRI/TRE Fokker 70/100
 
-*Forward-deployed regulatory engineering for East African aviation.*
+_Forward-deployed regulatory engineering for East African aviation._
 
 ---
 

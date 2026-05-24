@@ -11,6 +11,7 @@ The platform serves at least two operators today (Jubba Airways Kenya, I-Fly Air
 The prototype has no multi-tenancy: a single React state tree mixes both operators' pilots.
 
 The choice space for multi-tenancy:
+
 1. **Database-per-tenant** — strongest isolation; highest operational overhead; cross-tenant analytics painful.
 2. **Schema-per-tenant** — moderate isolation; migration discipline gets fragile at scale.
 3. **Shared schema with `operator_id` column on every tenant-scoped table** — leanest; isolation depends on application discipline unless enforced by the database.

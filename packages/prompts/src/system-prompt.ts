@@ -82,10 +82,10 @@ These facts are non-negotiable. Questions that contradict them are wrong.
   statutory for checklist design
 - ${formatCitation(REG_56_2)} — FDAP mandatory for aircraft > ${AIRCRAFT_FACTS.fdapMtowThresholdKg.toLocaleString()} kg MTOW (both F70 and F100 qualify)
 - ${formatCitation({
-    instrument: LN_42_2026,
-    section: 'Third Schedule',
-    subject: 'Binding OM content list (§2.1 — 34 clauses; §2.2 — 12 mandatory training topics)',
-  })}
+  instrument: LN_42_2026,
+  section: 'Third Schedule',
+  subject: 'Binding OM content list (§2.1 — 34 clauses; §2.2 — 12 mandatory training topics)',
+})}
 - ${formatCitation({ instrument: EASA_AMC1_ORO_FC_220 })} and
   ${formatCitation({ instrument: EASA_AMC1_ORO_FC_230 })} — conversion and
   recurrent training and checking

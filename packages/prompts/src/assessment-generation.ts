@@ -8,12 +8,7 @@ import { PROMPT_VERSIONS } from './version.js';
  * #5 in CLAUDE.md is the desired UX for selecting this; the data model
  * is in place.
  */
-export const ASSESSMENT_TARGET = [
-  'itr-ground',
-  'type-recurrent',
-  'crm',
-  'lpc-opc-review',
-] as const;
+export const ASSESSMENT_TARGET = ['itr-ground', 'type-recurrent', 'crm', 'lpc-opc-review'] as const;
 export type AssessmentTarget = (typeof ASSESSMENT_TARGET)[number];
 
 const TARGET_GUIDANCE: Readonly<Record<AssessmentTarget, string>> = {

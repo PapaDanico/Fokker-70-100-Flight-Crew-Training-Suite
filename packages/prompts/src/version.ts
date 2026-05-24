@@ -12,5 +12,4 @@ export const PROMPT_VERSIONS = {
   assessmentGeneration: 'assessment-generation@1' satisfies PromptVersion,
 } as const;
 
-export type RegisteredPromptVersion =
-  (typeof PROMPT_VERSIONS)[keyof typeof PROMPT_VERSIONS];
+export type RegisteredPromptVersion = (typeof PROMPT_VERSIONS)[keyof typeof PROMPT_VERSIONS];

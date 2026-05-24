@@ -166,8 +166,7 @@ export const THIRD_SCHEDULE = {
         number: 25,
         shortRef: '§2.1.25',
         subject: 'Stabilised approach criteria',
-        notes:
-          'Operators submit their own gate heights; the regulation does not prescribe values.',
+        notes: 'Operators submit their own gate heights; the regulation does not prescribe values.',
       },
     ] as ReadonlyArray<ThirdScheduleClause>,
   },

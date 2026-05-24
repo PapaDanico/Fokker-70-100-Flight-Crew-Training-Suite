@@ -32,9 +32,10 @@ const prompt = buildAssessmentPrompt({
 let lastError: ReturnType<typeof parseAssessment> | null = null;
 
 for (let attempt = 0; attempt < 3; attempt++) {
-  const messages = lastError && !lastError.ok
-    ? [{ role: 'user' as const, content: buildRetryFollowUp(lastError) }]
-    : [{ role: 'user' as const, content: prompt.user }];
+  const messages =
+    lastError && !lastError.ok
+      ? [{ role: 'user' as const, content: buildRetryFollowUp(lastError) }]
+      : [{ role: 'user' as const, content: prompt.user }];
 
   const response = await client.messages.create({
     model: prompt.model,
