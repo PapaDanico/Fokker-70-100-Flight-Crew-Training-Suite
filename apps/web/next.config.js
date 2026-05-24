@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@dnca/domain', '@dnca/ontology'],
+  transpilePackages: ['@dnca/domain', '@dnca/ontology', '@dnca/prompts'],
   typedRoutes: true,
   webpack: (config) => {
     // Allow ESM-style `.js` imports that point at `.ts` source in workspace packages.

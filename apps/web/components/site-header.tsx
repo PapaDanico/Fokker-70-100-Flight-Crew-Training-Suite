@@ -5,6 +5,7 @@ const NAV_LINKS = [
   { href: '/', label: 'Dashboard' },
   { href: '/pilots', label: 'Pilots' },
   { href: '/sessions', label: 'Sessions' },
+  { href: '/assessments', label: 'Assessments' },
   { href: '/aircraft', label: 'Aircraft' },
   { href: '/compliance', label: 'Compliance' },
 ] as const;

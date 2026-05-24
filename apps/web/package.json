@@ -12,8 +12,10 @@
     "test": "echo 'tests TBD'"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
     "@dnca/domain": "workspace:*",
     "@dnca/ontology": "workspace:*",
+    "@dnca/prompts": "workspace:*",
     "next": "^15.0.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
