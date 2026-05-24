@@ -1,10 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @dnca/web build",
-  "installCommand": "echo 'install handled by buildCommand'",
-  "outputDirectory": ".next",
   "framework": "nextjs",
-  "regions": ["fra1"],
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter @dnca/web build",
+  "outputDirectory": ".next",
   "functions": {
     "app/api/assessments/generate/route.ts": {
       "maxDuration": 60
