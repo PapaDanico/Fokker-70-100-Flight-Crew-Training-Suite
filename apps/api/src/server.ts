@@ -13,6 +13,7 @@ import zodValidatorPlugin from './plugins/zod-validator.js';
 import { healthRoutes } from './routes/health.js';
 import { pilotRoutes } from './routes/pilots.js';
 import { currencyRoutes } from './routes/currency.js';
+import { sessionRoutes } from './routes/sessions.js';
 
 /**
  * Fastify server bootstrap. Wired plugins in dependency order:
@@ -88,6 +89,7 @@ export async function buildApp() {
   await app.register(healthRoutes);
   await app.register(pilotRoutes);
   await app.register(currencyRoutes);
+  await app.register(sessionRoutes);
 
   app.addHook('onClose', async () => {
     await closeDb();
