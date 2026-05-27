@@ -4,6 +4,7 @@ import { sessions, exercises, competencyGrades, signOffs } from '@dnca/db';
 import { ICAO_COMPETENCY, SESSION_KIND, SESSION_VENUE } from '@dnca/domain';
 import { and, eq } from 'drizzle-orm';
 import type { ZodTypeProvider } from '../plugins/zod-validator.js';
+import { requireRoleGroup } from '../lib/rbac.js';
 
 /**
  * Session logging routes — the CBTA write path.
@@ -99,6 +100,7 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
     },
     async (request, reply) => {
       const operatorId = requireOperatorScope(request);
+      requireRoleGroup(request.principal, 'SESSION_CREATE');
       const instructorUserId = request.principal.userId;
       const { pilotId } = request.params;
       const body = request.body;
@@ -148,6 +150,7 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
     },
     async (request, reply) => {
       const operatorId = requireOperatorScope(request);
+      requireRoleGroup(request.principal, 'SESSION_CREATE');
       const { sessionId } = request.params;
       const body = request.body;
 
@@ -224,6 +227,7 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
     },
     async (request) => {
       const operatorId = requireOperatorScope(request);
+      requireRoleGroup(request.principal, 'SESSION_SIGN_OFF');
       const signerUserId = request.principal.userId;
       const { sessionId } = request.params;
       const body = request.body;

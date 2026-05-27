@@ -30,6 +30,20 @@ import { sessionRoutes } from './routes/sessions.js';
 export async function buildApp() {
   const config = loadConfig();
 
+  // Defence in depth: if any production-only secret is set but NODE_ENV
+  // is not 'production', refuse to boot. Catches the footgun where a
+  // deployed environment forgets NODE_ENV=production and silently runs
+  // the dev synth principal (every request a PLATFORM_ADMIN).
+  const hasProductionSecrets =
+    Boolean(config.WORKOS_API_KEY) || Boolean(config.WORKOS_COOKIE_PASSWORD);
+  if (hasProductionSecrets && config.NODE_ENV !== 'production') {
+    throw new Error(
+      'Refusing to boot: WORKOS_* secrets are set but NODE_ENV is not "production". ' +
+        'Either set NODE_ENV=production (recommended on deployed environments) ' +
+        'or unset the WorkOS secrets to run in dev/demo mode.',
+    );
+  }
+
   const loggerConfig = isProduction(config)
     ? { level: config.LOG_LEVEL }
     : {

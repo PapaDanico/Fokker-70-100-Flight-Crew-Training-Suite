@@ -57,8 +57,13 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# next standalone output ships a self-contained server.js + minimal
-# node_modules under .next/standalone; static assets ship separately.
+# Standalone output (next.config.js `output: 'standalone'` +
+# `outputFileTracingRoot: <repo-root>`) produces:
+#   .next/standalone/apps/web/server.js   <- the entry point
+#   .next/standalone/apps/web/.next/      <- server-side bundles
+#   .next/standalone/packages/*/          <- traced workspace packages
+#   .next/standalone/node_modules/         <- traced external deps
+# Static assets and public/ are not in standalone; copy them separately.
 COPY --from=builder /repo/apps/web/.next/standalone ./
 COPY --from=builder /repo/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder /repo/apps/web/public ./apps/web/public
