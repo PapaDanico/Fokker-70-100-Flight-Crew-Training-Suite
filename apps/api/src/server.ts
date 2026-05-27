@@ -82,7 +82,7 @@ export async function buildApp() {
 
   const { db, close: closeDb } = createDatabase({ connectionString: config.DATABASE_URL });
 
-  await app.register(authPlugin, { config });
+  await app.register(authPlugin, { config, db });
   await app.register(tenantPlugin, { db });
   await app.register(auditPlugin);
 

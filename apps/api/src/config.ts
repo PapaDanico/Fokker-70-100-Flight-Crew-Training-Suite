@@ -17,6 +17,12 @@ const ConfigSchema = z.object({
   WORKOS_API_KEY: z.string().optional(),
   WORKOS_CLIENT_ID: z.string().optional(),
   WORKOS_COOKIE_PASSWORD: z.string().min(32).optional(),
+  // JWKS URL used to verify WorkOS-issued access tokens. Defaults to the
+  // standard AuthKit JWKS endpoint derived from WORKOS_CLIENT_ID; override
+  // for self-hosted or custom-domain deployments.
+  WORKOS_JWKS_URL: z.string().url().optional(),
+  // Expected issuer of WorkOS-signed JWTs. Defaults to https://api.workos.com.
+  WORKOS_ISSUER: z.string().url().default('https://api.workos.com'),
 
   // Anthropic — optional; routes that need it return 503 if unset.
   ANTHROPIC_API_KEY: z.string().optional(),
