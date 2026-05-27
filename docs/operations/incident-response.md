@@ -67,7 +67,7 @@ Sprint 5 replaces this dance with SSM Session Manager + a tiny bastion task.
 - **Don't bypass the audit log to "fix" a bad row.** The `audit_events` triggers are non-overrideable by design. To correct a wrong record:
   - Currency: issue a new record with a `notes` field explaining the correction; the old record stays in `audit_events.before_state` of the new event
   - Pilot: PATCH with the corrected value; the AuditEvent UPDATE row captures the before/after
-  - Session: voiding is not implemented yet (Sprint 3). Until then, log a corrective sign-off on a successor session that references the original.
+  - Session: POST `/sessions/:sessionId/void` with a written reason (>=8 chars). Restricted to HOT / AM / PLATFORM_ADMIN; the before/after status transition is captured in `audit_events`. If the void itself is contested, log a corrective sign-off on a successor session that references the original.
 
 - **Anything that touches multi-operator data** must be done by a `PLATFORM_ADMIN` principal AND logged in an out-of-band incident report. The `PLATFORM_ADMIN` role bypasses RBAC (by design) and `BYPASSRLS` on the platform_admin Postgres role lets it read across operators. Use that authority sparingly.
 
