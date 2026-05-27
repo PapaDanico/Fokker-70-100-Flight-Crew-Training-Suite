@@ -2,7 +2,7 @@
   "name": "@dnca/web",
   "version": "0.0.1",
   "private": true,
-  "description": "Next.js frontend for the Fokker 70/100 Flight Crew Training Suite",
+  "description": "Next.js frontend for the DNCA Flight Crew Training Suite",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
