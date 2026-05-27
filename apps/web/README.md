@@ -4,13 +4,34 @@ Next.js 15 (App Router) frontend for the Fokker 70/100 Flight Crew Training Suit
 
 ## Status
 
-Sprint 2 starter. Three live pages, all composing data from the typed workspace packages:
+Sprint 2. `/pilots` and `/pilots/[id]` now read from `@dnca/api` over HTTP when configured, with a deterministic fixture fallback for unconfigured environments (CI, Vercel preview without API yet). A source badge on each page surfaces whether live data or fixtures are in use.
 
-- **`/`** — Overview, regulatory cliff visibility (`@dnca/ontology` LN 42/2026 + Reg 84 deadline).
-- **`/aircraft`** — F70/100 facts table (`@dnca/domain` `AIRCRAFT_FACTS` + `exceedsFdapThreshold()`).
-- **`/compliance`** — KCARs/ICAO/FAA/EASA cross-reference matrix, Third Schedule structure, Sixth Schedule penalties (`@dnca/ontology` `DOMAIN_CROSS_REFERENCE`, `THIRD_SCHEDULE`, `SIXTH_SCHEDULE_PENALTIES`).
+## API wiring (Sprint 2 final piece)
 
-No mocked data. No backend yet — pages are statically rendered from typed source-of-truth data, so anything that would drift between the prompt block, the UI, and the database is impossible by construction (ADR 0004).
+Two server-only env vars control wiring:
+
+| Var                | Required?                           | Purpose                                                                                                 |
+| ------------------ | ----------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `API_BASE_URL`     | Optional                            | Base URL of `@dnca/api`, e.g. `http://localhost:3001`. Falls back to fixtures when unset.               |
+| `DEMO_OPERATOR_ID` | Required when `API_BASE_URL` is set | Operator UUID sent as `x-demo-operator-id` until WorkOS JWT verification flips on (Sprint 3 follow-on). |
+
+Local dev with the live API:
+
+```bash
+# terminal 1 — Postgres
+docker compose -f infra/docker-compose.yml up -d
+
+# terminal 2 — API
+DATABASE_URL='postgres://app_runtime:dev@localhost:5432/fokker_dev' \
+  pnpm --filter @dnca/api dev
+
+# terminal 3 — web
+API_BASE_URL=http://localhost:3001 \
+  DEMO_OPERATOR_ID=22222222-2222-2222-2222-222222222222 \
+  pnpm --filter @dnca/web dev
+```
+
+Without `API_BASE_URL`, the web app still renders fully via `@dnca/domain` fixtures — useful for design work and Vercel preview builds.
 
 ## Local development
 
