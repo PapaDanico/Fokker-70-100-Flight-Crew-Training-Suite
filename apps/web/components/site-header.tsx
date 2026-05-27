@@ -20,9 +20,7 @@ export function SiteHeader() {
             <Plane className="h-5 w-5 text-navy-900" />
           </div>
           <div>
-            <div className="text-base font-bold tracking-tight">
-              Fokker 70/100 Flight Crew Training Suite
-            </div>
+            <div className="text-base font-bold tracking-tight">Flight Crew Training Suite</div>
             <div className="text-xs text-slate-300">
               DN Consultancy Aviation — KCARs 2025 / ICAO Annex 1 &amp; 6 / FAA Part 121 / EASA
               Part-CAT

@@ -1,4 +1,4 @@
-# DNCA Flight Crew Training Platform
+# DNCA Flight Crew Training Suite
 
 **Forward-deployed regulatory engineering and crew training management for East African AOC holders.**
 

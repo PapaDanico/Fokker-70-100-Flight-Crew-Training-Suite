@@ -1,6 +1,6 @@
 # `@dnca/web`
 
-Next.js 15 (App Router) frontend for the Fokker 70/100 Flight Crew Training Suite.
+Next.js 15 (App Router) frontend for the DNCA Flight Crew Training Suite.
 
 ## Status
 
