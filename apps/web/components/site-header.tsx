@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, Menu, Plane, X } from 'lucide-react';
@@ -54,13 +54,25 @@ const NAV: ReadonlyArray<NavItem> = [
 ];
 
 function useActive(pathname: string | null) {
-  return (href: string) => (href === '/' ? pathname === '/' : (pathname ?? '').startsWith(href));
+  const path = pathname ?? '';
+  // Anchor on a path boundary so e.g. "/aircraft" does not also light up a
+  // hypothetical "/aircraft-types"; "/" matches only the exact root.
+  return (href: string) =>
+    href === '/' ? path === '/' : path === href || path.startsWith(`${href}/`);
 }
 
 export function SiteHeader() {
   const pathname = usePathname();
   const isActive = useActive(pathname);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const burgerRef = useRef<HTMLButtonElement>(null);
+
+  // Stable close handler that also restores focus to the trigger (the drawer
+  // is aria-modal, so focus must return to where it came from).
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    requestAnimationFrame(() => burgerRef.current?.focus());
+  }, []);
 
   // Close the mobile drawer whenever the route changes.
   useEffect(() => {
@@ -108,6 +120,7 @@ export function SiteHeader() {
         {/* Mobile hamburger */}
         <button
           type="button"
+          ref={burgerRef}
           onClick={() => setDrawerOpen(true)}
           className="rounded p-2 text-slate-200 hover:bg-navy-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 md:hidden"
           aria-label="Open navigation menu"
@@ -118,9 +131,7 @@ export function SiteHeader() {
         </button>
       </div>
 
-      {drawerOpen ? (
-        <MobileDrawer onClose={() => setDrawerOpen(false)} isActive={isActive} />
-      ) : null}
+      {drawerOpen ? <MobileDrawer onClose={closeDrawer} isActive={isActive} /> : null}
     </header>
   );
 }
@@ -198,18 +209,52 @@ function MobileDrawer({
   onClose: () => void;
   isActive: (href: string) => boolean;
 }) {
+  const asideRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
+    const focusables = (): HTMLElement[] =>
+      asideRef.current
+        ? Array.from(
+            asideRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
+          )
+        : [];
+
+    // Move focus into the drawer on open (aria-modal contract).
+    focusables()[0]?.focus();
+
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = focusables();
+      if (items.length === 0) return;
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
+
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden'; // lock background scroll
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
   }, [onClose]);
 
   return (
     <div className="md:hidden">
       <div className="fixed inset-0 z-40 bg-black/50" onClick={onClose} aria-hidden="true" />
       <aside
+        ref={asideRef}
         id="mobile-drawer"
         role="dialog"
         aria-modal="true"
