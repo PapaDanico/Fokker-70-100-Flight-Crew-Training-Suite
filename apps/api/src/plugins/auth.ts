@@ -5,7 +5,7 @@ import { eq, sql } from 'drizzle-orm';
 import { operators } from '@dnca/db';
 import type { Database } from '@dnca/db';
 import type { Role, OperatorId, UserId } from '@dnca/domain';
-import type { Config } from '../config.js';
+import { resolveAuthMode, type Config } from '../config.js';
 
 /**
  * Authenticated principal attached to every request that passes the auth
@@ -97,7 +97,9 @@ function mapWorkOSRole(workosRole: string | undefined): Role {
 export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => {
   app.decorateRequest('principal', null as unknown as Principal);
 
-  const isProd = opts.config.NODE_ENV === 'production';
+  // Effective auth mode is decided once at registration. assertAuthModeSafe()
+  // (called in buildApp) has already refused unsafe fail-open combinations.
+  const authMode = resolveAuthMode(opts.config);
 
   // Lazy-construct the JWKS only when production auth actually fires, so
   // dev/test boots don't hit the WorkOS network. createRemoteJWKSet caches
@@ -116,7 +118,15 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   }
 
   app.addHook('onRequest', async (request) => {
-    if (!isProd) {
+    // Routes can opt out of auth with `config: { auth: 'none' }` (e.g. /health
+    // for load-balancer probes). The hook must honour it — otherwise such
+    // routes 401 in production. These routes must not read request.principal.
+    const routeAuth = (request.routeOptions?.config as { auth?: string } | undefined)?.auth;
+    if (routeAuth === 'none') {
+      return;
+    }
+
+    if (authMode === 'demo') {
       request.principal = synthesizeDemoPrincipal(request);
       return;
     }

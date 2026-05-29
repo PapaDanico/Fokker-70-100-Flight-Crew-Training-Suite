@@ -286,4 +286,34 @@ describe('RLS cross-tenant isolation', { skip }, () => {
     });
     assert.equal(blocked.statusCode, 404);
   });
+
+  it('cannot create a session against another operator’s pilot (bug H2)', async () => {
+    // Create a pilot under I-Fly...
+    const iflyPilot = await app!.inject({
+      method: 'POST',
+      url: '/pilots',
+      headers: { 'x-demo-operator-id': IFLY_OPERATOR_ID, 'content-type': 'application/json' },
+      payload: {
+        fleetId: '22222222-aaaa-aaaa-aaaa-000000000001',
+        fullName: 'Capt. Foreign Pilot',
+        licenceNumber: `KCAA/DEMO/ATPL/FGN-${Date.now()}`,
+        role: 'Captain',
+        baseIcao: 'HKJK',
+        phase: 'Line',
+      },
+    });
+    assert.equal(iflyPilot.statusCode, 201);
+    const foreignPilotId = iflyPilot.json().id;
+
+    // ...then, scoped to JAK, try to attach a session to the I-Fly pilot.
+    // The FK does not honour RLS, so without the in-tenant guard this would
+    // succeed and corrupt both tenants. Expect 404 (RLS hides the foreign pilot).
+    const res = await app!.inject({
+      method: 'POST',
+      url: `/pilots/${foreignPilotId}/sessions`,
+      headers: { 'x-demo-operator-id': JAK_OPERATOR_ID, 'content-type': 'application/json' },
+      payload: { kind: 'OPC', venue: 'FFS', startedAt: new Date().toISOString() },
+    });
+    assert.equal(res.statusCode, 404);
+  });
 });

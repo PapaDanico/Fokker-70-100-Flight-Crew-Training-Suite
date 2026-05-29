@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { sessions, exercises, competencyGrades, signOffs } from '@dnca/db';
+import { sessions, exercises, competencyGrades, signOffs, pilots } from '@dnca/db';
 import { ICAO_COMPETENCY, SESSION_KIND, SESSION_VENUE } from '@dnca/domain';
 import { and, eq } from 'drizzle-orm';
 import type { ZodTypeProvider } from '../plugins/zod-validator.js';
@@ -104,6 +104,18 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
       const body = request.body;
 
       const created = await app.withOperatorScope(operatorId, async (db) => {
+        // Verify the pilot belongs to THIS operator before linking a session
+        // to it. The FK pilot_id -> pilots(id) is a system constraint that does
+        // not honour RLS, so without this an in-tenant caller could attach a
+        // session to another operator's pilot. RLS returns zero rows here for a
+        // foreign pilotId.
+        const [pilot] = await db
+          .select({ id: pilots.id })
+          .from(pilots)
+          .where(eq(pilots.id, pilotId))
+          .limit(1);
+        if (!pilot) throw app.httpErrors.notFound(`Pilot ${pilotId} not found`);
+
         const [inserted] = await db
           .insert(sessions)
           .values({
