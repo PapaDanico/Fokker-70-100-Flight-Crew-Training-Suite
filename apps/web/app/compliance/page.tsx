@@ -1,6 +1,6 @@
 import {
   DOMAIN_CROSS_REFERENCE,
-  KCARS_2025_INSTRUMENTS,
+  KCARS_2025_ALL_INSTRUMENTS,
   SIXTH_SCHEDULE_PENALTIES,
   THIRD_SCHEDULE,
   formatCitation,
@@ -124,7 +124,7 @@ export default function CompliancePage() {
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
           <table className="w-full text-sm">
             <tbody className="divide-y divide-slate-200">
-              {KCARS_2025_INSTRUMENTS.map((i) => (
+              {KCARS_2025_ALL_INSTRUMENTS.map((i) => (
                 <tr key={i.instrumentId} className="hover:bg-slate-50">
                   <td className="w-28 px-3 py-2 align-top font-medium text-navy-900">
                     {i.authoritativeUrl ? (

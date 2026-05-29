@@ -114,6 +114,65 @@ export const KCARS_2025_INSTRUMENTS: ReadonlyArray<RegulatoryInstrument> = [
   LN_42_2026,
 ];
 
+// ---------------------------------------------------------------------------
+// Related KCARs 2025 instruments the platform cites outside the core
+// binding-law set. Each confirmed against the official Kenya Law record and
+// present in the gazette PDFs on file. LN 32 is the SMS that FDAP plugs into;
+// LN 50 is the currency-catalogue source for medical/ELP/recency; LN 47 is the
+// General-Aviation operations regulation (the non-CAT sibling of LN 29).
+// ---------------------------------------------------------------------------
+
+export const LN_32_2026: RegulatoryInstrument = {
+  framework: 'KCARs',
+  instrumentId: 'LN-32-2026',
+  shortLabel: 'LN 32/2026',
+  longLabel: 'Legal Notice 32 of 2026 — Safety Management',
+  effectiveDate: '2026-03-03',
+  authoritativeUrl: 'https://new.kenyalaw.org/akn/ke/act/ln/2026/32/eng@2026-03-03',
+  primarySourceVerified: true,
+  notes: 'The SMS framework that the FDAP requirement (LN 29/LN 42) forms part of.',
+};
+
+export const LN_47_2026: RegulatoryInstrument = {
+  framework: 'KCARs',
+  instrumentId: 'LN-47-2026',
+  shortLabel: 'LN 47/2026',
+  longLabel: 'Legal Notice 47 of 2026 — Operation of Aircraft (General Aviation — Aeroplanes)',
+  effectiveDate: '2026-03-25',
+  authoritativeUrl: 'https://new.kenyalaw.org/akn/ke/act/ln/2026/47/eng@2026-03-25',
+  primarySourceVerified: true,
+  notes: 'General-Aviation operations; the CAT-aeroplane sibling is LN 29.',
+};
+
+export const LN_50_2026: RegulatoryInstrument = {
+  framework: 'KCARs',
+  instrumentId: 'LN-50-2026',
+  shortLabel: 'LN 50/2026',
+  longLabel: 'Legal Notice 50 of 2026 — Personnel Licensing',
+  effectiveDate: '2026-03-25',
+  authoritativeUrl: 'https://new.kenyalaw.org/akn/ke/act/ln/2026/50/eng@2026-03-25',
+  primarySourceVerified: true,
+  notes:
+    'Currency-catalogue source for Class 1 medical (age-dependent), ELP re-validation cadence (reg 8) and recent-experience (reg 11). Read in full.',
+};
+
+/**
+ * The full set of KCARs 2025 instruments the platform cites — the binding-law
+ * core plus the related instruments above. Used by inspector-facing provenance
+ * surfaces so every cited Legal Notice shows its verification state and links to
+ * the authoritative Kenya Law record.
+ */
+export const KCARS_2025_RELATED_INSTRUMENTS: ReadonlyArray<RegulatoryInstrument> = [
+  LN_32_2026,
+  LN_47_2026,
+  LN_50_2026,
+];
+
+export const KCARS_2025_ALL_INSTRUMENTS: ReadonlyArray<RegulatoryInstrument> = [
+  ...KCARS_2025_INSTRUMENTS,
+  ...KCARS_2025_RELATED_INSTRUMENTS,
+];
+
 /**
  * Key binding regulations, citable individually. Sections use KCARs native
  * notation (e.g. '17(3)' for sub-paragraph (3) of regulation 17).
