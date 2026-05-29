@@ -4,6 +4,7 @@ import {
   DEMO_PILOTS,
   buildDemoCurrencyRecords,
   computeDueNotifications,
+  planNotificationDispatch,
   type ExpiryNotification,
   type IsoDate,
   type NotificationSeverity,
@@ -23,6 +24,7 @@ export default function NotificationsPage() {
   const asOf = asOfDate.toISOString().slice(0, 10) as IsoDate;
   const records = buildDemoCurrencyRecords(asOfDate);
   const items = computeDueNotifications({ pilots: DEMO_PILOTS, currencyRecords: records, asOf });
+  const plan = planNotificationDispatch(items);
   const operatorName = (id: string) => DEMO_OPERATORS.find((o) => o.id === id)?.tradingName ?? '—';
 
   const groups: Array<{ sev: NotificationSeverity; rows: ExpiryNotification[] }> = (
@@ -42,6 +44,16 @@ export default function NotificationsPage() {
           <strong>{asOf}</strong>.
         </p>
       </header>
+
+      {items.length > 0 ? (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2 text-xs text-slate-700">
+          <span className="font-semibold text-navy-900">Dry-run dispatch:</span> would send{' '}
+          <strong>{plan.messages.length}</strong> message(s) to{' '}
+          <strong>{plan.recipientCount}</strong> crew — {plan.byChannel.EMAIL} email ·{' '}
+          {plan.byChannel.SMS} SMS · {plan.byChannel.TELEGRAM} Telegram.{' '}
+          <span className="italic text-slate-500">(provider send pending)</span>
+        </div>
+      ) : null}
 
       {items.length === 0 ? (
         <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900">
