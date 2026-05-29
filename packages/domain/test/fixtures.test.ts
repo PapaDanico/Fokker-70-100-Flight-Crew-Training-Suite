@@ -95,6 +95,54 @@ describe('buildDemoCurrencyRecords', () => {
     }
   });
 
+  it('indexes the latest non-superseded record per (pilot, kind), ignoring array order', () => {
+    const pilotId = DEMO_PILOTS[0]!.id;
+    const operatorId = DEMO_PILOTS[0]!.operatorId;
+    const base = {
+      operatorId,
+      pilotId,
+      kind: 'opc' as const,
+      validFrom: '2026-01-01' as IsoDate,
+    };
+    // Newer record appears BEFORE the older one in the array — array order
+    // must not decide the winner.
+    const records = [
+      {
+        ...base,
+        id: 'cr-new' as never,
+        validTo: '2026-07-01' as IsoDate,
+        createdAt: '2026-01-02T00:00:00.000Z' as never,
+      },
+      {
+        ...base,
+        id: 'cr-old' as never,
+        validTo: '2026-06-01' as IsoDate,
+        createdAt: '2026-01-01T00:00:00.000Z' as never,
+      },
+    ];
+    const index = indexCurrencyByPilotAndKind(records);
+    const winner = index.get(currencyMapKey(pilotId, 'opc'));
+    assert.equal(winner?.validTo, '2026-07-01', 'the most recently created record must win');
+  });
+
+  it('excludes superseded records from the index', () => {
+    const pilotId = DEMO_PILOTS[0]!.id;
+    const records = [
+      {
+        operatorId: DEMO_PILOTS[0]!.operatorId,
+        pilotId,
+        kind: 'opc' as const,
+        validFrom: '2026-01-01' as IsoDate,
+        validTo: '2026-07-01' as IsoDate,
+        createdAt: '2026-01-01T00:00:00.000Z' as never,
+        id: 'cr-superseded' as never,
+        supersededAt: '2026-02-01T00:00:00.000Z' as never,
+      },
+    ];
+    const index = indexCurrencyByPilotAndKind(records);
+    assert.equal(index.get(currencyMapKey(pilotId, 'opc')), undefined);
+  });
+
   it('renders at least one CAUTION, one ACTION, and one EXPIRED status for demo coverage', () => {
     const records = buildDemoCurrencyRecords(ASOF);
     const index = indexCurrencyByPilotAndKind(records);
