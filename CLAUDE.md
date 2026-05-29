@@ -59,7 +59,7 @@ If asked to claim otherwise, refuse and surface the discrepancy.
 ### Regulatory framework
 
 - Primary binding law: **KCARs 2025** — LN 29, 30, 31, 37, 40, 41, 42 of 2026
-- **LN 42/2026 Third Schedule** is the binding OM content list (§2.1 — 34 clauses; §2.2 — 12 mandatory training topics)
+- **LN 42/2026 Third Schedule** is the binding OM content list. Verified against the gazetted notice (Kenya Gazette Supp. No. 52, 6 Mar 2026), its CONTENTS are: **§2.1 General (39 clauses), §2.2 Aircraft operating information (13), §2.3 Routes/aerodromes/heliports (6), §2.4 Training (3)** — 61 clauses total. (Supersedes the earlier "§2.1 = 34 / §2.2 = 12 training topics" summary, which did not match the gazette.)
 - **Reg 17(3)** — manuals submitted to KCAA at least 30 days before intended implementation; implementation before approval prohibited
 - **Reg 32(3) and 38(3)** — Human Factors statutory in checklist design
 - **Reg 56(2)** — FDAP mandatory for aircraft >27,000 kg MTOW (both F70 and F100 qualify)
