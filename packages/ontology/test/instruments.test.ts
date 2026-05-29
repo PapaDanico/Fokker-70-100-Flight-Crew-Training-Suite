@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  KCARS_2025_ALL_INSTRUMENTS,
   KCARS_2025_INSTRUMENTS,
+  KCARS_2025_RELATED_INSTRUMENTS,
   LN_40_2026,
   LN_42_2026,
   SIXTH_SCHEDULE_PENALTIES,
@@ -29,14 +31,25 @@ describe('KCARs 2025 instrument verification state', () => {
     ]);
   });
 
-  it('gives every verified instrument an authoritative (Kenya Law) URL', () => {
-    for (const i of KCARS_2025_INSTRUMENTS) {
+  it('gives every cited instrument an authoritative (Kenya Law) URL', () => {
+    for (const i of KCARS_2025_ALL_INSTRUMENTS) {
       assert.match(
         i.authoritativeUrl ?? '',
         /kenyalaw\.org\/akn\/ke\/act\/ln\/2026\//,
         `${i.instrumentId} must cite its Kenya Law record`,
       );
     }
+  });
+
+  it('promotes the related instruments (SMS, GA, PEL) as verified, with unique ids', () => {
+    const related = KCARS_2025_RELATED_INSTRUMENTS.map((i) => i.instrumentId).sort();
+    assert.deepEqual(related, ['LN-32-2026', 'LN-47-2026', 'LN-50-2026']);
+    for (const i of KCARS_2025_RELATED_INSTRUMENTS) {
+      assert.equal(i.primarySourceVerified, true, `${i.instrumentId} must be verified`);
+    }
+    const ids = KCARS_2025_ALL_INSTRUMENTS.map((i) => i.instrumentId);
+    assert.equal(new Set(ids).size, ids.length, 'no duplicate instrument ids');
+    assert.equal(KCARS_2025_ALL_INSTRUMENTS.length, 10);
   });
 
   it('locks the corrected gazette effective dates (LN 37/40/41 are 6 Mar, not 3 Mar)', () => {
