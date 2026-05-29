@@ -52,6 +52,14 @@ Other gazetted notices seen on the drive (for reference): LN 18 Communication Pr
 - **Reg 84** = "Saving and Transitional Provision" (LN 42, Part XI; Reg 83 revokes L.N. 92/2018). Confirms the Reg 84 transition anchor; effective date 6 Mar 2026 ⇒ unextended deadline 2027-03-06 (already in code).
 - **Reg 82** = Penalties (Sixth Schedule). Penalty band values not re-verified this pass — left as-is. ❓
 
+### 1.4 Personnel Licensing (LN 50) — currency cadences verified ✅
+
+Read LN 50 (Personnel Licensing) in full and checked the FCTS currency catalogue:
+
+- **Class 1 medical** is **age-dependent**: 12 months under 40; **6 months at 40+** (and 6 months at 60+ in multi-crew CAT). The catalogue had a flat 12-month cycle — kept as the under-40 baseline, documented the age-split in `notes`, re-sourced to LN 50, and added `class1MedicalValidityMonths(age)` (12 <40, else 6) for deriving the window. (Class 2/PPL is 48/24/12 months — not modelled; FCTS tracks Class 1.)
+- **ELP** (reg 8): Level 4 → re-evaluate every **3 years**, Level 5 → **6 years**, Level 6 → lifetime. The catalogue already matched; re-sourced to LN 50 reg 8 + Second Schedule.
+- **Recent experience** (reg 11): LN 50 **delegates** the specifics to the Authority/operator; the FCTS 90-day / 3-take-offs-and-landings value is the ICAO/FAA standard the scheme adopts — noted as such.
+
 ## 2. Fatigue Management / FTL — still draft
 
 Only a _stakeholder-comments matrix_ for the **Civil Aviation (Fatigue Management) Regulations** is present (no gazetted notice), consistent with the earlier finding that the FTL/FRMS instrument is not yet in force. The FCTS correctly does not assert FTL limits; no change needed. (Relevant to the sister rostering product, not this one.)
@@ -60,7 +68,7 @@ Only a _stakeholder-comments matrix_ for the **Civil Aviation (Fatigue Managemen
 
 1. LN 31 subject (Aviation Security?) and LN 41 (Aerodromes?) — confirm titles.
 2. Sixth Schedule penalty band values (Reg 82).
-3. Personnel Licensing (LN 50) currency cadences (medical age-split, OPC/LPC, recency) — a future pass can verify the FCTS currency-catalogue cycles against LN 50.
+3. ~~Personnel Licensing (LN 50) currency cadences~~ ✅ **done** — see §1.4.
 
 ## Source files (shared drive)
 
