@@ -106,7 +106,13 @@ export const DOMAIN_CROSS_REFERENCE: ReadonlyArray<DomainCrossReference> = [
   },
   {
     domain: 'CRM / Human Factors',
-    kcars: [{ instrument: LN_42_2026, section: 'Third Schedule §2.2.4', subject: 'CRM' }],
+    kcars: [
+      {
+        instrument: LN_42_2026,
+        section: 'Third Schedule §2.4.1',
+        subject: 'Flight crew training programme (incl. CRM/TEM)',
+      },
+    ],
     faa: [{ instrument: FAA_AC_120_51E }],
     easa: [{ instrument: EASA_PART_ORO, section: 'ORO.FC.115' }],
     icao: [{ instrument: ICAO_DOC_9683 }],

@@ -1,9 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { sessions, exercises, competencyGrades, signOffs } from '@dnca/db';
+import { sessions, exercises, competencyGrades, signOffs, pilots } from '@dnca/db';
 import { ICAO_COMPETENCY, SESSION_KIND, SESSION_VENUE } from '@dnca/domain';
 import { and, eq } from 'drizzle-orm';
 import type { ZodTypeProvider } from '../plugins/zod-validator.js';
+import { requireRoleGroup } from '../lib/rbac.js';
 
 /**
  * Session logging routes — the CBTA write path.
@@ -81,6 +82,13 @@ const SignOffBody = z.object({
   overallGrade: GradeSchema.optional(),
 });
 
+// Voiding requires a written reason (audit trail; KCAA can't accept a
+// silently-deleted training record). Length floor mirrors the SignOff
+// statement floor — short reasons aren't enough to defend in an audit.
+const VoidBody = z.object({
+  reason: z.string().min(8).max(2000),
+});
+
 const SessionParams = z.object({ sessionId: z.string().uuid() });
 const PilotParams = z.object({ pilotId: z.string().uuid() });
 
@@ -99,11 +107,24 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
     },
     async (request, reply) => {
       const operatorId = requireOperatorScope(request);
+      requireRoleGroup(request.principal, 'SESSION_CREATE');
       const instructorUserId = request.principal.userId;
       const { pilotId } = request.params;
       const body = request.body;
 
       const created = await app.withOperatorScope(operatorId, async (db) => {
+        // Verify the pilot belongs to THIS operator before linking a session
+        // to it. The FK pilot_id -> pilots(id) is a system constraint that does
+        // not honour RLS, so without this an in-tenant caller could attach a
+        // session to another operator's pilot. RLS returns zero rows here for a
+        // foreign pilotId.
+        const [pilot] = await db
+          .select({ id: pilots.id })
+          .from(pilots)
+          .where(eq(pilots.id, pilotId))
+          .limit(1);
+        if (!pilot) throw app.httpErrors.notFound(`Pilot ${pilotId} not found`);
+
         const [inserted] = await db
           .insert(sessions)
           .values({
@@ -148,6 +169,7 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
     },
     async (request, reply) => {
       const operatorId = requireOperatorScope(request);
+      requireRoleGroup(request.principal, 'SESSION_CREATE');
       const { sessionId } = request.params;
       const body = request.body;
 
@@ -224,6 +246,7 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
     },
     async (request) => {
       const operatorId = requireOperatorScope(request);
+      requireRoleGroup(request.principal, 'SESSION_SIGN_OFF');
       const signerUserId = request.principal.userId;
       const { sessionId } = request.params;
       const body = request.body;
@@ -296,6 +319,63 @@ export const sessionRoutes: FastifyPluginAsync = async (rawApp) => {
       });
 
       return result;
+    },
+  );
+
+  // --- VOID session (DRAFT or SIGNED_OFF -> VOIDED) ---
+  // Used to correct an erroneously-logged session without bypassing the
+  // audit log. KCARs requires every voided training record to carry a
+  // written reason that an inspector can review.
+  app.post(
+    '/sessions/:sessionId/void',
+    {
+      schema: {
+        params: SessionParams,
+        body: VoidBody,
+        response: { 200: z.object({ sessionId: z.string().uuid() }) },
+      },
+    },
+    async (request) => {
+      const operatorId = requireOperatorScope(request);
+      // Voiding is a governance action — TRI/TRE cannot self-void a
+      // record they signed. Restricted to HoT / AM / PLATFORM_ADMIN.
+      requireRoleGroup(request.principal, 'PILOT_DELETE');
+      const { sessionId } = request.params;
+      const { reason } = request.body;
+
+      await app.withOperatorScope(operatorId, async (db) => {
+        const [before] = await db
+          .select()
+          .from(sessions)
+          .where(eq(sessions.id, sessionId))
+          .limit(1);
+        if (!before) throw app.httpErrors.notFound(`Session ${sessionId} not found`);
+        if (before.status === 'VOIDED') {
+          throw app.httpErrors.conflict('Session is already VOIDED');
+        }
+
+        const [after] = await db
+          .update(sessions)
+          .set({ status: 'VOIDED', updatedAt: new Date() })
+          .where(eq(sessions.id, sessionId))
+          .returning();
+
+        // Use the generic UPDATE action — the before/after state captures
+        // the DRAFT|SIGNED_OFF -> VOIDED transition; the void reason is
+        // carried in afterState.voidReason so an inspector can audit the
+        // justification. Adding a new AUDIT_ACTION enum value would
+        // require a DB migration; deferring that until Sprint 5 when the
+        // audit-read UI is built and we know which slices we want.
+        await app.emitAuditEvent(db, request, {
+          entityType: 'Session',
+          entityId: sessionId,
+          action: 'UPDATE',
+          beforeState: before,
+          afterState: { ...after, voidReason: reason },
+        });
+      });
+
+      return { sessionId };
     },
   );
 

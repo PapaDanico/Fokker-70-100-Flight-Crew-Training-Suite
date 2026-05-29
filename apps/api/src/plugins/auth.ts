@@ -5,7 +5,7 @@ import { eq, sql } from 'drizzle-orm';
 import { operators } from '@dnca/db';
 import type { Database } from '@dnca/db';
 import type { Role, OperatorId, UserId } from '@dnca/domain';
-import type { Config } from '../config.js';
+import { resolveAuthMode, type Config } from '../config.js';
 
 /**
  * Authenticated principal attached to every request that passes the auth
@@ -97,7 +97,9 @@ function mapWorkOSRole(workosRole: string | undefined): Role {
 export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => {
   app.decorateRequest('principal', null as unknown as Principal);
 
-  const isProd = opts.config.NODE_ENV === 'production';
+  // Effective auth mode is decided once at registration. assertAuthModeSafe()
+  // (called in buildApp) has already refused unsafe fail-open combinations.
+  const authMode = resolveAuthMode(opts.config);
 
   // Lazy-construct the JWKS only when production auth actually fires, so
   // dev/test boots don't hit the WorkOS network. createRemoteJWKSet caches
@@ -116,7 +118,15 @@ export const authPlugin: FastifyPluginAsync<AuthOptions> = async (app, opts) => 
   }
 
   app.addHook('onRequest', async (request) => {
-    if (!isProd) {
+    // Routes can opt out of auth with `config: { auth: 'none' }` (e.g. /health
+    // for load-balancer probes). The hook must honour it — otherwise such
+    // routes 401 in production. These routes must not read request.principal.
+    const routeAuth = (request.routeOptions?.config as { auth?: string } | undefined)?.auth;
+    if (routeAuth === 'none') {
+      return;
+    }
+
+    if (authMode === 'demo') {
       request.principal = synthesizeDemoPrincipal(request);
       return;
     }
@@ -198,20 +208,43 @@ async function lookupOperatorByWorkOSOrg(
   return (rows[0]?.id as OperatorId) ?? null;
 }
 
+const DEMO_ROLES = new Set([
+  'PLATFORM_ADMIN',
+  'ACCOUNTABLE_MANAGER',
+  'HEAD_OF_TRAINING',
+  'CHIEF_PILOT',
+  'SAFETY_MANAGER',
+  'QUALITY_MANAGER',
+  'TRI',
+  'TRE',
+  'LCE',
+  'LTC',
+  'PILOT',
+]);
+
 function synthesizeDemoPrincipal(request: FastifyRequest): Principal {
-  // Demo path: every request is a platform-admin viewing the seeded JAK
-  // operator. Used only when NODE_ENV !== 'production'.
+  // Demo path: every request is a platform-admin scoped to JAK by default.
+  // Tests + dev tools override the operator via x-demo-operator-id and the
+  // role via x-demo-role so RBAC behaviour can be exercised without a
+  // WorkOS round trip. Used only when NODE_ENV !== 'production'.
   const operatorIdHeader = request.headers['x-demo-operator-id'];
   const operatorId =
     typeof operatorIdHeader === 'string' && /^[0-9a-f-]{36}$/i.test(operatorIdHeader)
       ? (operatorIdHeader as OperatorId)
       : ('11111111-1111-1111-1111-111111111111' as OperatorId);
+
+  const roleHeader = request.headers['x-demo-role'];
+  const role =
+    typeof roleHeader === 'string' && DEMO_ROLES.has(roleHeader)
+      ? (roleHeader as Role)
+      : 'PLATFORM_ADMIN';
+
   return {
     userId: '99999999-9999-9999-9999-000000000001' as UserId,
     email: 'demo@dnca.aero',
-    fullName: 'Demo Platform Admin',
+    fullName: `Demo ${role}`,
     operatorId,
-    roles: ['PLATFORM_ADMIN'] as ReadonlyArray<Role>,
+    roles: [role] as ReadonlyArray<Role>,
     source: 'demo',
   };
 }

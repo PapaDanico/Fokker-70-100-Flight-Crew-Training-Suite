@@ -18,16 +18,20 @@ export const LN_30_2026: RegulatoryInstrument = {
   framework: 'KCARs',
   instrumentId: 'LN-30-2026',
   shortLabel: 'LN 30/2026',
-  longLabel: 'Legal Notice 30 of 2026 — Safety Management & ATS',
+  longLabel: 'Legal Notice 30 of 2026 — Air Traffic Services',
   effectiveDate: '2026-03-03',
+  notes:
+    'Per the gazetted notices, Safety Management is a separate instrument (LN 32/2026); LN 30 is Air Traffic Services.',
 };
 
 export const LN_31_2026: RegulatoryInstrument = {
   framework: 'KCARs',
   instrumentId: 'LN-31-2026',
   shortLabel: 'LN 31/2026',
-  longLabel: 'Legal Notice 31 of 2026 — Aviation Security & Personnel Licensing',
+  longLabel: 'Legal Notice 31 of 2026 — Aviation Security',
   effectiveDate: '2026-03-03',
+  notes:
+    'Personnel Licensing is a separate instrument (LN 50/2026), not LN 31. The LN 31 subject (Aviation Security) should be confirmed against the gazetted notice.',
 };
 
 export const LN_37_2026: RegulatoryInstrument = {
@@ -55,10 +59,17 @@ export const LN_41_2026: RegulatoryInstrument = {
 };
 
 /**
- * LN 42/2026 — Air Operator Certification & Administration. Its Third Schedule
- * is the binding Operations Manual content list: §2.1 (34 OM clauses) and
- * §2.2 (12 mandatory training topics). Population of clause subjects awaits
- * the primary-source PDF — see THIRD_SCHEDULE below.
+ * LN 42/2026 — Air Operator Certification & Administration (Kenya Gazette
+ * Supplement No. 52, 6 March 2026; Legislative Supplement No. 37). Its Third
+ * Schedule (rr. 30(1) and 31(2)) is the binding Operations Manual content
+ * list. Verified against the gazetted PDF, its structure is:
+ *   §2.1 General — 39 clauses (2.1.1–2.1.39)
+ *   §2.2 Aircraft operating information — 13 clauses (2.2.1–2.2.13)
+ *   §2.3 Routes, aerodromes and heliports — 6 clauses (2.3.1–2.3.6)
+ *   §2.4 Training — 3 clauses (2.4.1–2.4.3)
+ * See THIRD_SCHEDULE below. (The earlier "§2.1 = 34 clauses / §2.2 = 12
+ * training topics" summary was inaccurate and has been corrected to the
+ * gazetted text.)
  */
 export const LN_42_2026: RegulatoryInstrument = {
   framework: 'KCARs',
@@ -137,80 +148,152 @@ export const SIXTH_SCHEDULE_PENALTIES = {
 } as const;
 
 // ----------------------------------------------------------------------------
-// LN 42/2026 Third Schedule structure
+// LN 42/2026 Third Schedule — Operations Manual (rr. 30(1) and 31(2))
 //
-// The Third Schedule contains:
-//   §2.1 — 34 OM content clauses (binding contents list for the operator's
-//          Operations Manual).
-//   §2.2 — 12 mandatory training topics.
-//
-// Clause subjects are populated as primary-source material becomes available
-// (PDF in /docs/regulatory/). Only entries verified against either CLAUDE.md
-// or the original prototype's cross-reference tab appear below.
+// Transcribed from the gazetted notice (Kenya Gazette Supplement No. 52,
+// 6 March 2026). The Schedule's CONTENTS (clause 2) has four sub-sections:
+//   §2.1 General (39) · §2.2 Aircraft operating information (13) ·
+//   §2.3 Routes, aerodromes and heliports (6) · §2.4 Training (3).
+// Subjects below are condensed from the clause text; the clause numbering and
+// section structure match the gazette exactly.
 // ----------------------------------------------------------------------------
 
 export interface ThirdScheduleClause {
   readonly number: number;
   readonly shortRef: string;
-  /** Null when the subject hasn't been verified against the primary-source PDF. */
+  /** Null only if a clause subject is genuinely unverified. */
   readonly subject: string | null;
   readonly pendingPrimarySource: boolean;
   readonly notes?: string;
 }
 
-function buildSectionClauses(
-  prefix: '§2.1' | '§2.2',
-  count: number,
-  known: ReadonlyArray<{ number: number; subject: string; notes?: string }>,
-): ReadonlyArray<ThirdScheduleClause> {
-  const byNumber = new Map(known.map((k) => [k.number, k]));
-  return Array.from({ length: count }, (_unused, i) => {
-    const number = i + 1;
-    const k = byNumber.get(number);
-    if (k) {
-      return {
-        number,
-        shortRef: `${prefix}.${number}`,
-        subject: k.subject,
-        pendingPrimarySource: false,
-        ...(k.notes !== undefined ? { notes: k.notes } : {}),
-      };
-    }
-    return {
-      number,
-      shortRef: `${prefix}.${number}`,
-      subject: null,
-      pendingPrimarySource: true,
-    };
-  });
+export interface ThirdScheduleSection {
+  /** e.g. '§2.1'. */
+  readonly ref: string;
+  readonly title: string;
+  readonly clauses: ReadonlyArray<ThirdScheduleClause>;
 }
 
-export const THIRD_SCHEDULE_SECTION_21_CLAUSES: ReadonlyArray<ThirdScheduleClause> =
-  buildSectionClauses('§2.1', 34, [
-    {
-      number: 25,
-      subject: 'Stabilised approach criteria',
-      notes: 'Operators submit their own gate heights; the regulation does not prescribe values.',
-    },
-  ]);
+function section(
+  ref: string,
+  title: string,
+  subjects: ReadonlyArray<string>,
+  notesByNumber: Readonly<Record<number, string>> = {},
+): ThirdScheduleSection {
+  return {
+    ref,
+    title,
+    clauses: subjects.map((subject, i) => {
+      const number = i + 1;
+      const note = notesByNumber[number];
+      return {
+        number,
+        shortRef: `${ref}.${number}`,
+        subject,
+        pendingPrimarySource: false,
+        ...(note !== undefined ? { notes: note } : {}),
+      };
+    }),
+  };
+}
 
-export const THIRD_SCHEDULE_SECTION_22_TOPICS: ReadonlyArray<ThirdScheduleClause> =
-  buildSectionClauses('§2.2', 12, [{ number: 4, subject: 'Crew Resource Management (CRM)' }]);
+const SECTION_21 = section(
+  '§2.1',
+  'General',
+  [
+    'Responsibilities of each crew member and persons assigned operational control',
+    'Flight and duty time limitations and rest schemes for flight and cabin crew members',
+    'List of navigational equipment to be carried, including performance-based navigation requirements',
+    'Long-range navigation procedures, EDTO engine-failure procedure, and diversion-aerodrome nomination/use',
+    'Circumstances in which a radio listening watch is to be maintained',
+    'Method for determining minimum flight altitudes',
+    'Methods for determining aerodrome operating minima',
+    'Safety precautions during refuelling with passengers on board',
+    'Ground handling arrangements and procedures',
+    'Procedures for pilots-in-command when an accident is observed',
+    'Flight crew for each type of operation, including the succession of command',
+    'Computation of fuel and oil quantities (incl. loss of pressurisation and en-route engine failure)',
+    'Conditions for oxygen use and the amount of oxygen (per the Fourth Schedule of the ANO)',
+    'Instructions for mass and balance control',
+    'Conduct and control of ground de-icing/anti-icing operations',
+    'Specifications for the operational flight plan',
+    'Standard operating procedures (SOP) for each phase of flight',
+    'Use of normal checklists and the timing of their use',
+    'Departure contingency procedures',
+    'Maintenance of altitude awareness and use of automated/flight-crew altitude call-out',
+    'Use of autopilots and auto-throttles in IMC',
+    'Clarification and acceptance of ATC clearances, particularly where terrain clearance is involved',
+    'Departure and approach briefings',
+    'Procedures for familiarisation with areas, routes and aerodromes',
+    'Stabilised approach procedure',
+    'Limitation on high rates of descent near the surface',
+    'Conditions required to commence or to continue an instrument approach',
+    'Conduct of precision and non-precision instrument approach procedures',
+    'Allocation of flight-crew duties and crew-workload management during night/IMC approach and landing',
+    'Training/awareness for avoidance of CFIT and use of GPWS; and upset prevention and recovery',
+    'Avoidance of collisions and use of the airborne collision avoidance system (ACAS)',
+    'Interception of civil aircraft (PIC procedures; visual signals)',
+    'Operations above 49,000 ft (15,000 m): solar cosmic-radiation guidance, descent procedures, dose records',
+    'Safety management system and related flight-safety programmes relevant to flight operations',
+    'Carriage of dangerous goods, including emergency action, labelling/marking, loading and crew responsibilities',
+    'Security instructions and guidance',
+    'Bomb-search checklist and inspection for concealed weapons/explosives; least-risk bomb location',
+    'Use of automatic landing systems, HUD or equivalent displays, and EVS/SVS/CVS equipment',
+    'Use of the electronic flight bag (EFB)',
+  ],
+  {
+    25: 'Operators submit their own gate heights; the regulation does not prescribe values.',
+    2: 'FTL/rest scheme is an OM-content requirement here; numeric limits derive from the operator’s approved scheme.',
+  },
+);
+
+const SECTION_22 = section('§2.2', 'Aircraft operating information', [
+  'Certification limitations and operating limitations',
+  'Normal, abnormal and emergency procedures and checklists used by the flight crew',
+  'Operating instructions and information on climb performance',
+  'Flight planning data for pre-flight and in-flight planning (different thrust/power and speed settings)',
+  'Maximum crosswind and tailwind components per type, with reductions for gusts/visibility/runway/crew/autopilot etc.',
+  'Instructions for aircraft loading and securing of load',
+  'Aircraft systems, associated controls and instructions for their use',
+  'Minimum equipment list (MEL) and configuration deviation list (CDL), incl. PBN requirements',
+  'Checklist of emergency and safety equipment and instructions for their use',
+  'Emergency evacuation procedures (type-specific; crew coordination; emergency positions/duties)',
+  'Normal/abnormal/emergency procedures for cabin crew and flight-/cabin-crew coordination',
+  'Survival and emergency equipment for different routes and pre-take-off verification (incl. oxygen)',
+  'Ground-air visual signal code for use by survivors',
+]);
+
+const SECTION_23 = section('§2.3', 'Routes, aerodromes and heliports', [
+  'Route guide (communications, navigation aids, aerodromes, approaches/arrivals/departures) per flight',
+  'Minimum flight altitudes for each route to be flown',
+  'Aerodrome operating minima for aerodromes of intended landing and alternates',
+  'Increase of aerodrome operating minima on degradation of approach/aerodrome facilities',
+  'Instructions for determining aerodrome operating minima',
+  'Information for flight-profile compliance (take-off/en-route/approach/landing climb & runway length; dry/wet/contaminated; tyre-speed)',
+]);
+
+const SECTION_24 = section('§2.4', 'Training', [
+  'Details of the flight crew training programme',
+  'Details of the cabin crew duties training programme',
+  'Details of the flight operations officer/flight dispatcher training programme (where employed)',
+]);
+
+export const THIRD_SCHEDULE_SECTIONS: ReadonlyArray<ThirdScheduleSection> = [
+  SECTION_21,
+  SECTION_22,
+  SECTION_23,
+  SECTION_24,
+];
+
+/** Back-compatible alias: §2.1 (General) clauses. */
+export const THIRD_SCHEDULE_SECTION_21_CLAUSES = SECTION_21.clauses;
 
 export const THIRD_SCHEDULE = {
   instrument: LN_42_2026,
-  section21: {
-    title: 'OM content list',
-    clauseCount: 34,
-    clauses: THIRD_SCHEDULE_SECTION_21_CLAUSES,
-    knownClauses: THIRD_SCHEDULE_SECTION_21_CLAUSES.filter((c) => !c.pendingPrimarySource),
-  },
-  section22: {
-    title: 'Mandatory training topics',
-    topicCount: 12,
-    clauses: THIRD_SCHEDULE_SECTION_22_TOPICS,
-    knownTopics: THIRD_SCHEDULE_SECTION_22_TOPICS.filter((c) => !c.pendingPrimarySource),
-  },
+  reference: 'rr. 30(1) and 31(2)',
+  title: 'Operations Manual',
+  sections: THIRD_SCHEDULE_SECTIONS,
+  totalClauseCount: THIRD_SCHEDULE_SECTIONS.reduce((n, s) => n + s.clauses.length, 0),
 } as const;
 
 /**

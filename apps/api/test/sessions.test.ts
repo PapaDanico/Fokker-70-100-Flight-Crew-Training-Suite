@@ -286,4 +286,159 @@ describe('RLS cross-tenant isolation', { skip }, () => {
     });
     assert.equal(blocked.statusCode, 404);
   });
+
+  it('cannot create a session against another operator’s pilot (bug H2)', async () => {
+    // Create a pilot under I-Fly...
+    const iflyPilot = await app!.inject({
+      method: 'POST',
+      url: '/pilots',
+      headers: { 'x-demo-operator-id': IFLY_OPERATOR_ID, 'content-type': 'application/json' },
+      payload: {
+        fleetId: '22222222-aaaa-aaaa-aaaa-000000000001',
+        fullName: 'Capt. Foreign Pilot',
+        licenceNumber: `KCAA/DEMO/ATPL/FGN-${Date.now()}`,
+        role: 'Captain',
+        baseIcao: 'HKJK',
+        phase: 'Line',
+      },
+    });
+    assert.equal(iflyPilot.statusCode, 201);
+    const foreignPilotId = iflyPilot.json().id;
+
+    // ...then, scoped to JAK, try to attach a session to the I-Fly pilot.
+    // The FK does not honour RLS, so without the in-tenant guard this would
+    // succeed and corrupt both tenants. Expect 404 (RLS hides the foreign pilot).
+    const res = await app!.inject({
+      method: 'POST',
+      url: `/pilots/${foreignPilotId}/sessions`,
+      headers: { 'x-demo-operator-id': JAK_OPERATOR_ID, 'content-type': 'application/json' },
+      payload: { kind: 'OPC', venue: 'FFS', startedAt: new Date().toISOString() },
+    });
+    assert.equal(res.statusCode, 404);
+  });
+});
+
+describe('Session void', { skip }, () => {
+  it('TRE cannot void a session — only HoT / AM can', async () => {
+    const sess = await app!.inject({
+      method: 'POST',
+      url: `/pilots/${pilotId}/sessions`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'TRE',
+        'content-type': 'application/json',
+      },
+      payload: { kind: 'OPC', venue: 'FFS', startedAt: new Date().toISOString() },
+    });
+    const sessionId = sess.json().id;
+
+    const res = await app!.inject({
+      method: 'POST',
+      url: `/sessions/${sessionId}/void`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'TRE',
+        'content-type': 'application/json',
+      },
+      payload: { reason: 'wrong pilot logged — TRE attempt' },
+    });
+    assert.equal(res.statusCode, 403);
+  });
+
+  it('HoT CAN void a DRAFT session', async () => {
+    const sess = await app!.inject({
+      method: 'POST',
+      url: `/pilots/${pilotId}/sessions`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'TRE',
+        'content-type': 'application/json',
+      },
+      payload: { kind: 'OPC', venue: 'FFS', startedAt: new Date().toISOString() },
+    });
+    const sessionId = sess.json().id;
+
+    const voidRes = await app!.inject({
+      method: 'POST',
+      url: `/sessions/${sessionId}/void`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'HEAD_OF_TRAINING',
+        'content-type': 'application/json',
+      },
+      payload: { reason: 'wrong pilot logged; logging a corrective session next' },
+    });
+    assert.equal(voidRes.statusCode, 200);
+
+    // Voided session reads back with status = VOIDED
+    const read = await app!.inject({
+      method: 'GET',
+      url: `/sessions/${sessionId}`,
+      headers: { 'x-demo-operator-id': JAK_OPERATOR_ID },
+    });
+    assert.equal(read.json().status, 'VOIDED');
+  });
+
+  it('Rejects a second void on an already-VOIDED session', async () => {
+    const sess = await app!.inject({
+      method: 'POST',
+      url: `/pilots/${pilotId}/sessions`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'TRE',
+        'content-type': 'application/json',
+      },
+      payload: { kind: 'OPC', venue: 'FFS', startedAt: new Date().toISOString() },
+    });
+    const sessionId = sess.json().id;
+
+    await app!.inject({
+      method: 'POST',
+      url: `/sessions/${sessionId}/void`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'HEAD_OF_TRAINING',
+        'content-type': 'application/json',
+      },
+      payload: { reason: 'first void; will retry below' },
+    });
+
+    const second = await app!.inject({
+      method: 'POST',
+      url: `/sessions/${sessionId}/void`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'HEAD_OF_TRAINING',
+        'content-type': 'application/json',
+      },
+      payload: { reason: 'second void attempt; should 409' },
+    });
+    assert.equal(second.statusCode, 409);
+  });
+
+  it('Rejects voids without a sufficient reason', async () => {
+    const sess = await app!.inject({
+      method: 'POST',
+      url: `/pilots/${pilotId}/sessions`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'TRE',
+        'content-type': 'application/json',
+      },
+      payload: { kind: 'OPC', venue: 'FFS', startedAt: new Date().toISOString() },
+    });
+    const sessionId = sess.json().id;
+
+    const res = await app!.inject({
+      method: 'POST',
+      url: `/sessions/${sessionId}/void`,
+      headers: {
+        'x-demo-operator-id': JAK_OPERATOR_ID,
+        'x-demo-role': 'HEAD_OF_TRAINING',
+        'content-type': 'application/json',
+      },
+      payload: { reason: 'oops' },
+    });
+    assert.equal(res.statusCode, 400);
+  });
 });

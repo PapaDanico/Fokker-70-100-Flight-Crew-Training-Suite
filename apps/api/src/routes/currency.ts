@@ -1,9 +1,10 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { currencyRecords } from '@dnca/db';
+import { currencyRecords, pilots, sessions } from '@dnca/db';
 import { CURRENCY_KIND } from '@dnca/domain';
 import { and, eq, isNull } from 'drizzle-orm';
 import type { ZodTypeProvider } from '../plugins/zod-validator.js';
+import { requireRoleGroup } from '../lib/rbac.js';
 
 /**
  * Currency record routes. Implements regulated-records discipline:
@@ -84,6 +85,7 @@ export const currencyRoutes: FastifyPluginAsync = async (rawApp) => {
     },
     async (request, reply) => {
       const operatorId = requireOperatorScope(request);
+      requireRoleGroup(request.principal, 'CURRENCY_ISSUE');
       const issuerUserId = request.principal.userId;
       const { pilotId } = request.params;
       const body = request.body;
@@ -94,6 +96,27 @@ export const currencyRoutes: FastifyPluginAsync = async (rawApp) => {
       }
 
       const created = await app.withOperatorScope(operatorId, async (db) => {
+        // 0. Verify the pilot is in THIS operator's tenant (the FK does not
+        // honour RLS — see sessions.ts). RLS returns zero rows for a foreign id.
+        const [pilot] = await db
+          .select({ id: pilots.id })
+          .from(pilots)
+          .where(eq(pilots.id, pilotId))
+          .limit(1);
+        if (!pilot) throw app.httpErrors.notFound(`Pilot ${pilotId} not found`);
+
+        // If a source session is referenced, it too must be in-tenant.
+        if (body.sourceSessionId !== undefined) {
+          const [srcSession] = await db
+            .select({ id: sessions.id })
+            .from(sessions)
+            .where(eq(sessions.id, body.sourceSessionId))
+            .limit(1);
+          if (!srcSession) {
+            throw app.httpErrors.notFound(`Source session ${body.sourceSessionId} not found`);
+          }
+        }
+
         // 1. Find the current active record for this (pilot, kind), if any.
         const [existing] = await db
           .select()

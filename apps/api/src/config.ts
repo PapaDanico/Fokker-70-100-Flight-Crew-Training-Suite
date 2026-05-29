@@ -12,6 +12,12 @@ const ConfigSchema = z.object({
 
   DATABASE_URL: z.string().url().or(z.string().startsWith('postgres://')),
 
+  // Authentication mode. Explicit opt-in is the safe contract: when unset it
+  // is DERIVED from NODE_ENV (production => workos, otherwise => demo), but
+  // assertAuthModeSafe() refuses fail-open combinations at boot. Set
+  // AUTH_MODE=demo explicitly to run the synthetic principal anywhere.
+  AUTH_MODE: z.enum(['workos', 'demo']).optional(),
+
   // WorkOS — required in production, optional in dev (then auth plugin runs
   // in DEMO mode with a synthetic operator).
   WORKOS_API_KEY: z.string().optional(),
@@ -49,4 +55,53 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
 
 export function isProduction(c: Config): boolean {
   return c.NODE_ENV === 'production';
+}
+
+export type AuthMode = 'workos' | 'demo';
+
+/** True if any WorkOS credential is configured (i.e. this looks like a real deployment). */
+export function hasWorkOSCredentials(c: Config): boolean {
+  return Boolean(c.WORKOS_API_KEY ?? c.WORKOS_CLIENT_ID ?? c.WORKOS_JWKS_URL);
+}
+
+/**
+ * The effective auth mode. Explicit AUTH_MODE wins; otherwise derive from
+ * NODE_ENV (production => workos, else demo).
+ */
+export function resolveAuthMode(c: Config): AuthMode {
+  return c.AUTH_MODE ?? (c.NODE_ENV === 'production' ? 'workos' : 'demo');
+}
+
+/**
+ * Fail-closed boot guard. The demo path authenticates every request as a
+ * PLATFORM_ADMIN whose tenant is chosen by a request header — catastrophic if
+ * it ever runs in front of real data. Called from buildApp(); throws rather
+ * than letting an ambiguous environment silently fail open.
+ */
+export function assertAuthModeSafe(c: Config): AuthMode {
+  const mode = resolveAuthMode(c);
+  if (mode === 'demo') {
+    if (c.NODE_ENV === 'production') {
+      throw new Error(
+        'AUTH refusing to start: demo auth (synthetic PLATFORM_ADMIN) cannot run with NODE_ENV=production. ' +
+          'Set AUTH_MODE=workos and configure WorkOS, or unset NODE_ENV for local/demo use.',
+      );
+    }
+    // Real deployment smell: WorkOS creds are present but we'd run demo (e.g. a
+    // prod container that forgot NODE_ENV=production). Require explicit opt-in.
+    if (hasWorkOSCredentials(c) && c.AUTH_MODE !== 'demo') {
+      throw new Error(
+        'AUTH refusing to start: WorkOS credentials are configured but auth would run in DEMO mode ' +
+          '(fail-open). Set NODE_ENV=production (or AUTH_MODE=workos) for real auth, or set AUTH_MODE=demo to override deliberately.',
+      );
+    }
+  } else {
+    // workos mode needs a verifiable JWKS source.
+    if (!c.WORKOS_JWKS_URL && !c.WORKOS_CLIENT_ID) {
+      throw new Error(
+        'AUTH refusing to start: AUTH_MODE=workos but neither WORKOS_JWKS_URL nor WORKOS_CLIENT_ID is set.',
+      );
+    }
+  }
+  return mode;
 }

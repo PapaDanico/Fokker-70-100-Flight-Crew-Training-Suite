@@ -5,7 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
 import { ZodError } from 'zod';
 import { createDatabase } from '@dnca/db';
-import { loadConfig, isProduction } from './config.js';
+import { loadConfig, isProduction, assertAuthModeSafe } from './config.js';
 import authPlugin from './plugins/auth.js';
 import tenantPlugin from './plugins/tenant.js';
 import auditPlugin from './plugins/audit.js';
@@ -30,6 +30,12 @@ import { sessionRoutes } from './routes/sessions.js';
 export async function buildApp() {
   const config = loadConfig();
 
+  // Fail closed: refuse to boot in an auth configuration that would fail open
+  // (e.g. demo auth in production, or WorkOS creds present but demo selected).
+  // This supersedes the earlier NODE_ENV-only guard from PR #4 — assertAuthModeSafe
+  // covers that case (WorkOS creds present but mode would be demo) and more.
+  const authMode = assertAuthModeSafe(config);
+
   const loggerConfig = isProduction(config)
     ? { level: config.LOG_LEVEL }
     : {
@@ -44,6 +50,8 @@ export async function buildApp() {
     logger: loggerConfig,
     genReqId: () => crypto.randomUUID(),
   });
+
+  app.log.info({ authMode, nodeEnv: config.NODE_ENV }, 'auth_mode_resolved');
 
   // Top-level error handling — Zod errors → 400, everything else → 500.
   app.setErrorHandler((err, request, reply) => {
