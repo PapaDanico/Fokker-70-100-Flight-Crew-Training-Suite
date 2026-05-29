@@ -135,3 +135,82 @@ export function computeDueNotifications(args: ComputeNotificationsArgs): ExpiryN
   out.sort((a, b) => a.daysToExpiry - b.daysToExpiry);
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Dispatch (dry-run) — turns the alert set into the per-recipient messages a
+// sender would emit, without any side effect or provider. Each crew member
+// gets one digest message per channel required by their most-severe item; the
+// provider-backed sender + per-band de-dup + AuditEvent land in a later slice.
+// ---------------------------------------------------------------------------
+
+export interface DispatchMessage {
+  readonly operatorId: OperatorId;
+  readonly pilotId: PilotId;
+  readonly pilotName: string;
+  readonly channel: NotificationChannel;
+  /** Most-severe item in the digest. */
+  readonly severity: NotificationSeverity;
+  readonly subject: string;
+  /** One line per currency item, e.g. "Class 1 Medical — 12d (URGENT)". */
+  readonly lines: ReadonlyArray<string>;
+}
+
+export interface DispatchPlan {
+  readonly dryRun: true;
+  readonly messages: ReadonlyArray<DispatchMessage>;
+  readonly recipientCount: number;
+  readonly byChannel: Record<NotificationChannel, number>;
+}
+
+const SEVERITY_RANK: Record<NotificationSeverity, number> = {
+  INFO: 0,
+  WARN: 1,
+  URGENT: 2,
+  EXPIRED: 3,
+};
+
+function lineFor(n: ExpiryNotification): string {
+  const when = n.daysToExpiry <= 0 ? `${Math.abs(n.daysToExpiry)}d overdue` : `${n.daysToExpiry}d`;
+  return `${n.label} — ${when} (${n.severity})`;
+}
+
+/**
+ * Pure: the dry-run dispatch plan for a set of notifications. Groups by pilot,
+ * derives the channels from the pilot's most-severe item, and renders one
+ * digest message per (pilot, channel).
+ */
+export function planNotificationDispatch(
+  notifications: ReadonlyArray<ExpiryNotification>,
+): DispatchPlan {
+  const byPilot = new Map<string, ExpiryNotification[]>();
+  for (const n of notifications) {
+    const arr = byPilot.get(n.pilotId) ?? [];
+    arr.push(n);
+    byPilot.set(n.pilotId, arr);
+  }
+
+  const messages: DispatchMessage[] = [];
+  const byChannel: Record<NotificationChannel, number> = { EMAIL: 0, SMS: 0, TELEGRAM: 0 };
+
+  for (const items of byPilot.values()) {
+    const top = items.reduce((a, b) =>
+      SEVERITY_RANK[b.severity] > SEVERITY_RANK[a.severity] ? b : a,
+    );
+    const lines = [...items].sort((a, b) => a.daysToExpiry - b.daysToExpiry).map(lineFor);
+    const subject = `${items.length} currency item${items.length === 1 ? '' : 's'} need attention`;
+    for (const channel of channelsFor(top.severity)) {
+      byChannel[channel] += 1;
+      messages.push({
+        operatorId: top.operatorId,
+        pilotId: top.pilotId,
+        pilotName: top.pilotName,
+        channel,
+        severity: top.severity,
+        subject,
+        lines,
+      });
+    }
+  }
+
+  return { dryRun: true, messages, recipientCount: byPilot.size, byChannel };
+}
