@@ -34,6 +34,7 @@ const NAV: ReadonlyArray<NavItem> = [
       { href: '/pilots', label: 'Pilots' },
       { href: '/sessions', label: 'Sessions' },
       { href: '/scheduling', label: 'Training scheduling' },
+      { href: '/notifications', label: 'Notifications' },
       { href: '/assessments', label: 'Assessments' },
     ],
   },
