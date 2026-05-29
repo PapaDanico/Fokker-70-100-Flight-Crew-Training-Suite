@@ -743,7 +743,7 @@ export function tallyCompetencies(exercises: ReadonlyArray<Exercise>): Competenc
 
 export interface OmCrossReferenceMapping {
   readonly operatorId: OperatorId;
-  /** Third Schedule clause short reference, e.g. '§2.1.25' or '§2.2.4'. */
+  /** Third Schedule clause short reference, e.g. '§2.1.25' or '§2.4.1'. */
   readonly clauseShortRef: string;
   /** Operator's OM section reference, e.g. 'OM-A §8.4.3'. */
   readonly operatorOmSection: string;
@@ -768,8 +768,8 @@ export const DEMO_OM_MAPPINGS: ReadonlyArray<OmCrossReferenceMapping> = [
   },
   {
     operatorId: OP_IFLY,
-    clauseShortRef: '§2.2.4',
-    operatorOmSection: 'OM-D §3.1 — CRM Recurrent Programme',
+    clauseShortRef: '§2.4.1',
+    operatorOmSection: 'OM-D §3.1 — Flight Crew Training Programme (incl. CRM)',
     evidenceReference: 'I-Fly CRM Programme rev 3 (annual cycle, 6 hrs)',
     mappedByUserName: 'Capt. Demo HoT (I-Fly)',
     mappedAt: ISO_DATETIME(new Date('2026-04-18T10:00:00Z')),

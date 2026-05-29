@@ -53,25 +53,21 @@ export default function CompliancePage() {
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="rounded-lg border border-slate-200 bg-white p-5">
           <h3 className="text-sm font-semibold text-navy-900">LN 42/2026 Third Schedule</h3>
-          <p className="mt-1 text-xs text-slate-600">{THIRD_SCHEDULE.section21.title}</p>
-          <p className="mt-3 text-sm text-slate-700">
-            <strong>§2.1</strong> — {THIRD_SCHEDULE.section21.clauseCount} OM content clauses.{' '}
-            {THIRD_SCHEDULE.section21.knownClauses.length} populated from verified sources;
-            remainder awaits the primary-source PDF.
+          <p className="mt-1 text-xs text-slate-600">
+            {THIRD_SCHEDULE.title} ({THIRD_SCHEDULE.reference}) — {THIRD_SCHEDULE.totalClauseCount}{' '}
+            binding clauses, transcribed from the gazetted notice.
           </p>
-          <p className="mt-2 text-sm text-slate-700">
-            <strong>§2.2</strong> — {THIRD_SCHEDULE.section22.topicCount} mandatory training topics.{' '}
-            {THIRD_SCHEDULE.section22.knownTopics.length} populated.
+          <ul className="mt-3 space-y-1 text-sm text-slate-700">
+            {THIRD_SCHEDULE.sections.map((s) => (
+              <li key={s.ref}>
+                <strong>{s.ref}</strong> {s.title} — {s.clauses.length} clauses
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-slate-600">
+            Key clauses: §2.1.2 flight &amp; duty time / rest scheme · §2.1.25 stabilised approach ·
+            §2.1.30 CFIT/GPWS &amp; UPRT · §2.1.35 dangerous goods · §2.4 training programmes.
           </p>
-          {THIRD_SCHEDULE.section21.knownClauses.length > 0 ? (
-            <ul className="mt-3 space-y-1 text-xs text-slate-600">
-              {THIRD_SCHEDULE.section21.knownClauses.map((c) => (
-                <li key={c.shortRef}>
-                  <strong>{c.shortRef}</strong> — {c.subject}
-                </li>
-              ))}
-            </ul>
-          ) : null}
           <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-200 pt-3">
             <span className="text-[10px] text-slate-500">Submission attestation:</span>
             <a
