@@ -86,3 +86,53 @@ describe('B737 profile (preview)', () => {
     assert.equal(B737_PROFILE.aiCalibration.technicalFactsBlock, undefined);
   });
 });
+
+describe('Kenyan-registry draft stubs', () => {
+  const DRAFT_IDS = ['B737_CLASSIC', 'C208', 'DHC8', 'ATR', 'EJET'];
+
+  it('registers the common Kenyan-registry types', () => {
+    for (const id of DRAFT_IDS) {
+      assert.ok(tryGetAircraftTypeProfile(id), `${id} must be in the registry`);
+    }
+  });
+
+  it('every draft stub is draft, not production-ready, with pending technique + AI', () => {
+    for (const id of DRAFT_IDS) {
+      const p = getAircraftTypeProfile(tryGetAircraftTypeProfile(id)!.id);
+      assert.equal(p.status, 'draft', `${id} must be draft`);
+      assert.equal(isProductionReady(p), false);
+      // Refuses to fabricate safety-relevant content until SME-calibrated.
+      assert.equal(p.operationalProfile.pendingPrimarySource, true);
+      assert.equal(p.operationalProfile.oei, undefined);
+      assert.equal(p.operationalProfile.takeoffFlapPolicy, undefined);
+      assert.equal(p.aiCalibration.pendingPrimarySource, true);
+      assert.equal(p.aiCalibration.technicalFactsBlock, undefined);
+      assert.ok(p.manufacturerFacts.engineDesignation.length > 0);
+    }
+  });
+
+  it('computes the FDAP flag correctly from public MTOW (Q400/E-Jets yes, C208/ATR no)', () => {
+    assert.equal(
+      profileExceedsFdapThreshold(getAircraftTypeProfile(tryGetAircraftTypeProfile('DHC8')!.id)),
+      true,
+    );
+    assert.equal(
+      profileExceedsFdapThreshold(getAircraftTypeProfile(tryGetAircraftTypeProfile('EJET')!.id)),
+      true,
+    );
+    assert.equal(
+      profileExceedsFdapThreshold(
+        getAircraftTypeProfile(tryGetAircraftTypeProfile('B737_CLASSIC')!.id),
+      ),
+      true,
+    );
+    assert.equal(
+      profileExceedsFdapThreshold(getAircraftTypeProfile(tryGetAircraftTypeProfile('C208')!.id)),
+      false,
+    );
+    assert.equal(
+      profileExceedsFdapThreshold(getAircraftTypeProfile(tryGetAircraftTypeProfile('ATR')!.id)),
+      false,
+    );
+  });
+});
