@@ -82,9 +82,11 @@ export interface AircraftTypeProfile {
 }
 
 /**
- * FDAP MTOW threshold is regulatory (KCARs LN 29/2026 Reg 56(2)), not
- * type-specific. Every type with at least one variant > this MTOW must run
- * FDAP. Both F70 and F100 qualify.
+ * FDAP MTOW threshold is regulatory (LN 42/2026 — FDAP as part of the SMS for
+ * aeroplanes > 27,000 kg MTOM; the parallel >27,000 kg threshold also appears
+ * at LN 29/2026 reg 6(2)(a) for aircraft tracking), not type-specific. Every
+ * type with at least one variant > this MTOW must run FDAP. Both F70 and F100
+ * qualify.
  */
 export const FDAP_MTOW_THRESHOLD_KG = AIRCRAFT_FACTS.fdapMtowThresholdKg;
 
@@ -230,12 +232,124 @@ export const B737_PROFILE: AircraftTypeProfile = {
 };
 
 // ----------------------------------------------------------------------------
+// Draft registry stubs — common Kenyan-registry types.
+//
+// These exist so the type selector lists the fleet an East African operator
+// actually flies. They carry ONLY public manufacturer facts (engine, nominal
+// MTOW — flagged "verify per operator OpSpec/AFM"); operational technique and
+// AI calibration are pendingPrimarySource and MUST be populated by a TRI/TRE
+// qualified on type (a Phase-1 content task) before any promotion. The
+// platform refuses to fabricate safety-relevant claims (CLAUDE.md).
+// MTOW figures are nominal public specs; their only computed use here is the
+// FDAP >27,000 kg flag, where every value sits well clear of the threshold.
+// ----------------------------------------------------------------------------
+
+function draftStub(args: {
+  id: string;
+  shortLabel: string;
+  longLabel: string;
+  engineDesignation: string;
+  variants: ReadonlyArray<AircraftVariant>;
+  examinerType: string;
+}): AircraftTypeProfile {
+  return {
+    id: args.id as AircraftTypeProfileId,
+    shortLabel: args.shortLabel,
+    longLabel: args.longLabel,
+    status: 'draft',
+    manufacturerFacts: {
+      engineDesignation: args.engineDesignation,
+      variants: args.variants,
+    },
+    operationalProfile: {
+      pendingPrimarySource: true,
+      notes:
+        'Draft stub — operational profile (flap policy, OEI technique, fuel asymmetry, ' +
+        'landing flaps, approach-speed source) to be populated from the operator OM-B/AFM by a ' +
+        'TRI/TRE qualified on type before any promotion. No technique is asserted.',
+    },
+    aiCalibration: {
+      examinerRoleDescription: `You are a Type Rating Examiner (TRE) for the ${args.examinerType}, working within the regulatory framework of KCARs 2025 cross-referenced to ICAO, FAA, and EASA.`,
+      pendingPrimarySource: true,
+    },
+  };
+}
+
+const vNote = 'Public nominal spec; verify per operator OpSpec/AFM before deployment.';
+
+export const B737_CLASSIC_PROFILE = draftStub({
+  id: 'B737_CLASSIC',
+  shortLabel: 'B737 Classic',
+  longLabel: 'Boeing 737 Classic (300/400/500)',
+  engineDesignation: 'CFM International CFM56-3',
+  examinerType: 'Boeing 737 Classic (300/400/500)',
+  variants: [
+    { key: 'B737-300', label: '737-300', mtowKg: 56_470, notes: vNote },
+    { key: 'B737-400', label: '737-400', mtowKg: 68_040, notes: vNote },
+    { key: 'B737-500', label: '737-500', mtowKg: 60_550, notes: vNote },
+  ],
+});
+
+export const C208_PROFILE = draftStub({
+  id: 'C208',
+  shortLabel: 'C208',
+  longLabel: 'Cessna 208 Caravan / 208B Grand Caravan',
+  engineDesignation: 'Pratt & Whitney Canada PT6A-114A',
+  examinerType: 'Cessna 208 Caravan',
+  variants: [
+    { key: 'C208', label: '208 Caravan', mtowKg: 3_629, notes: vNote },
+    { key: 'C208B', label: '208B Grand Caravan', mtowKg: 3_995, notes: vNote },
+  ],
+});
+
+export const DHC8_PROFILE = draftStub({
+  id: 'DHC8',
+  shortLabel: 'DHC-8',
+  longLabel: 'De Havilland Canada Dash 8 / Q400',
+  engineDesignation: 'Pratt & Whitney Canada PW123 / PW150A',
+  examinerType: 'Dash 8 / Q400',
+  variants: [
+    { key: 'DHC8-300', label: 'Dash 8-300', mtowKg: 19_505, notes: vNote },
+    { key: 'DHC8-400', label: 'Q400 (Dash 8-400)', mtowKg: 29_574, notes: vNote },
+  ],
+});
+
+export const ATR_PROFILE = draftStub({
+  id: 'ATR',
+  shortLabel: 'ATR 42/72',
+  longLabel: 'ATR 42 / ATR 72',
+  engineDesignation: 'Pratt & Whitney Canada PW127',
+  examinerType: 'ATR 42/72',
+  variants: [
+    { key: 'ATR42-600', label: 'ATR 42-600', mtowKg: 18_600, notes: vNote },
+    { key: 'ATR72-600', label: 'ATR 72-600', mtowKg: 23_000, notes: vNote },
+  ],
+});
+
+export const EJET_PROFILE = draftStub({
+  id: 'EJET',
+  shortLabel: 'E170/190',
+  longLabel: 'Embraer E-Jets (E170 / E190)',
+  engineDesignation: 'General Electric CF34-8E / CF34-10E',
+  examinerType: 'Embraer E-Jets (E170/E190)',
+  variants: [
+    { key: 'E170', label: 'E170', mtowKg: 37_200, notes: vNote },
+    { key: 'E190', label: 'E190', mtowKg: 51_800, notes: vNote },
+  ],
+});
+
+// ----------------------------------------------------------------------------
 // Registry
 // ----------------------------------------------------------------------------
 
 export const AIRCRAFT_TYPE_PROFILES: ReadonlyArray<AircraftTypeProfile> = [
   F70_100_PROFILE,
   B737_PROFILE,
+  B737_CLASSIC_PROFILE,
+  C208_PROFILE,
+  DHC8_PROFILE,
+  ATR_PROFILE,
+  EJET_PROFILE,
 ];
 
 const _PROFILES_BY_ID = new Map<AircraftTypeProfileId, AircraftTypeProfile>(
